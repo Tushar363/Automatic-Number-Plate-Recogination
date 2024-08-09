@@ -41,6 +41,7 @@ def predictRoute():
         os.system("cd yolov5/ && python detect.py --weights best.pt --img 416 --conf 0.5 --source ../data/inputImage.jpg --save-txt --save-conf")
          # Assuming YOLOv5 saves the result image and bounding box coordinates
         result_image_path = "yolov5/runs/detect/exp/inputImage.jpg"
+        
         bbox_path = "yolov5/runs/detect/exp/labels/inputImage.txt"
 
         # Load the image
@@ -50,6 +51,7 @@ def predictRoute():
         with open(bbox_path, 'r') as f:
             lines = f.readlines()
         print(lines)
+        # os.remove("yolov5/runs/detect/exp/inputImage1.jpg")
         for line in lines:
             # Assuming YOLOv5 format: class x_center y_center width height (normalized values)
             parts = line.split()
@@ -71,16 +73,16 @@ def predictRoute():
 
             # Crop the image using the bounding box coordinates
             cropped_image = image.crop((x1, y1, x2, y2))
-
+            cropped_image=cropped_image.resize((900,600))
             # Save the cropped image (you can customize the save path)
-            cropped_image_path = f"yolov5/runs/detect/exp/cropped_image_{x1}_{y1}.jpg"
+            cropped_image_path = f"yolov5/runs/detect/exp/crop.jpg"
             cropped_image.save(cropped_image_path)
-        # opencodedbase64 = encodeImageIntoBase64("yolov5/runs/detect/exp/inputImage.jpg")
+        opencodedbase64 = encodeImageIntoBase64("yolov5/runs/detect/exp/crop.jpg")
         # result = {"image": opencodedbase64.decode('utf-8')}
-        opencodedbase64 = encodeImageIntoBase64(result_image_path)
+        # opencodedbase64 = encodeImageIntoBase64(result_image_path)
         result = {"image": opencodedbase64.decode('utf-8')}
         # os.remove("yolov5/runs")
-        # shutil.rmtree("yolov5/runs")
+        shutil.rmtree("yolov5/runs")
 
     except ValueError as val:
         print(val)
