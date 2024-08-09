@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify, render_template,Response
 from flask_cors import CORS, cross_origin
 from licensePlateDetection.constant.application import APP_HOST, APP_PORT
 import shutil
-from PIL import Image
+from PIL import Image,ImageEnhance
 app = Flask(__name__)
 CORS(app)
 
@@ -73,10 +73,18 @@ def predictRoute():
 
             # Crop the image using the bounding box coordinates
             cropped_image = image.crop((x1, y1, x2, y2))
-            cropped_image=cropped_image.resize((900,600))
+            cropped_image=cropped_image.resize((720,360))
+            
+            enhancer = ImageEnhance.Sharpness(cropped_image)
+            cropped_image = enhancer.enhance(2.0) 
+            
+            enhancer = ImageEnhance.Contrast(cropped_image)
+            cropped_image = enhancer.enhance(1.5) 
             # Save the cropped image (you can customize the save path)
             cropped_image_path = f"yolov5/runs/detect/exp/crop.jpg"
             cropped_image.save(cropped_image_path)
+            
+        
         opencodedbase64 = encodeImageIntoBase64("yolov5/runs/detect/exp/crop.jpg")
         # result = {"image": opencodedbase64.decode('utf-8')}
         # opencodedbase64 = encodeImageIntoBase64(result_image_path)
