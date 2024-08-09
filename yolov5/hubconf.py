@@ -57,6 +57,8 @@ def _create(name, pretrained=True, channels=3, classes=80, autoshape=True, verbo
     from utils.downloads import attempt_download
     from utils.general import LOGGER, ROOT, check_requirements, intersect_dicts, logging
     from utils.torch_utils import select_device
+    import pathlib
+    pathlib.PosixPath = pathlib.WindowsPath
 
     if not verbose:
         LOGGER.setLevel(logging.WARNING)

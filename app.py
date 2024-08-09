@@ -6,8 +6,7 @@ from flask import Flask, request, jsonify, render_template,Response
 from flask_cors import CORS, cross_origin
 from licensePlateDetection.constant.application import APP_HOST, APP_PORT
 import shutil
-
-
+from PIL import Image
 app = Flask(__name__)
 CORS(app)
 
@@ -32,17 +31,56 @@ def home():
 
 @app.route("/predict", methods=['POST','GET'])
 @cross_origin()
+
 def predictRoute():
     try:
         image = request.json['image']
+        
         decodeImage(image, clApp.filename)
 
-        os.system("cd yolov5/ && python detect.py --weights best.pt --img 416 --conf 0.5 --source ../data/inputImage.jpg")
+        os.system("cd yolov5/ && python detect.py --weights best.pt --img 416 --conf 0.5 --source ../data/inputImage.jpg --save-txt --save-conf")
+         # Assuming YOLOv5 saves the result image and bounding box coordinates
+        result_image_path = "yolov5/runs/detect/exp/inputImage.jpg"
+        bbox_path = "yolov5/runs/detect/exp/labels/inputImage.txt"
 
-        opencodedbase64 = encodeImageIntoBase64("yolov5/runs/detect/exp/inputImage.jpg")
+        # Load the image
+        image = Image.open(result_image_path)
+
+        # Read the bounding box coordinates
+        with open(bbox_path, 'r') as f:
+            lines = f.readlines()
+        print(lines)
+        for line in lines:
+            # Assuming YOLOv5 format: class x_center y_center width height (normalized values)
+            parts = line.split()
+            print(parts)
+            x_center, y_center, width, height = map(float, parts[1:5])
+
+            # Convert from normalized coordinates to pixel values
+            img_width, img_height = image.size
+            x_center = x_center * img_width
+            y_center = y_center * img_height
+            width = width * img_width
+            height = height * img_height
+
+            # Calculate the bounding box coordinates
+            x1 = int(x_center - width / 2)
+            y1 = int(y_center - height / 2)
+            x2 = int(x_center + width / 2)
+            y2 = int(y_center + height / 2)
+
+            # Crop the image using the bounding box coordinates
+            cropped_image = image.crop((x1, y1, x2, y2))
+
+            # Save the cropped image (you can customize the save path)
+            cropped_image_path = f"yolov5/runs/detect/exp/cropped_image_{x1}_{y1}.jpg"
+            cropped_image.save(cropped_image_path)
+        # opencodedbase64 = encodeImageIntoBase64("yolov5/runs/detect/exp/inputImage.jpg")
+        # result = {"image": opencodedbase64.decode('utf-8')}
+        opencodedbase64 = encodeImageIntoBase64(result_image_path)
         result = {"image": opencodedbase64.decode('utf-8')}
         # os.remove("yolov5/runs")
-        shutil.rmtree("yolov5/runs")
+        # shutil.rmtree("yolov5/runs")
 
     except ValueError as val:
         print(val)
