@@ -165,3 +165,6 @@ artifacts/*
 test/*
 train/*
 *.yaml
+*.jpg
+*.png
+data/*.jpg

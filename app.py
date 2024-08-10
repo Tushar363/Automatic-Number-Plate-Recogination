@@ -6,9 +6,12 @@ from flask import Flask, request, jsonify, render_template,Response
 from flask_cors import CORS, cross_origin
 from licensePlateDetection.constant.application import APP_HOST, APP_PORT
 import shutil
+import google.generativeai as genai
+import numpy as np
 from PIL import Image,ImageEnhance
 app = Flask(__name__)
 CORS(app)
+
 
 class ClientApp:
     def __init__(self):
@@ -50,12 +53,11 @@ def predictRoute():
         # Read the bounding box coordinates
         with open(bbox_path, 'r') as f:
             lines = f.readlines()
-        print(lines)
+
         # os.remove("yolov5/runs/detect/exp/inputImage1.jpg")
         for line in lines:
             # Assuming YOLOv5 format: class x_center y_center width height (normalized values)
             parts = line.split()
-            print(parts)
             x_center, y_center, width, height = map(float, parts[1:5])
 
             # Convert from normalized coordinates to pixel values
@@ -84,8 +86,19 @@ def predictRoute():
             cropped_image_path = f"yolov5/runs/detect/exp/crop.jpg"
             cropped_image.save(cropped_image_path)
             
+        # OCR part 
+        os.environ["GOOGLE_API_KEY"] = 'AIzaSyCwZCOAOQjGf-IkhtTl6-QPAX_X0Qo0K1U'
+        genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+        model = genai.GenerativeModel(model_name='gemini-1.5-pro', tools="code_execution")
+        prompt = "Extract text from this image."
+        ocr_result = model.generate_content([prompt, cropped_image])
+        list = ocr_result.text[:-3].split(" ")
+        print(ocr_result.text)
+        text = "".join(list[6:])
+        print(text)
         
         opencodedbase64 = encodeImageIntoBase64("yolov5/runs/detect/exp/crop.jpg")
+        print(opencodedbase64)
         # result = {"image": opencodedbase64.decode('utf-8')}
         # opencodedbase64 = encodeImageIntoBase64(result_image_path)
         result = {"image": opencodedbase64.decode('utf-8')}
