@@ -87,18 +87,18 @@ def predictRoute():
             cropped_image.save(cropped_image_path)
             
         # OCR part 
-        os.environ["GOOGLE_API_KEY"] = 'AIzaSyCwZCOAOQjGf-IkhtTl6-QPAX_X0Qo0K1U'
+        os.environ["GOOGLE_API_KEY"] = 'AIzaSyBPo9ZnsOXe425u7742JRROwBPyg6wXNXc'
         genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
         model = genai.GenerativeModel(model_name='gemini-1.5-pro', tools="code_execution")
         prompt = "Extract text from this image."
         ocr_result = model.generate_content([prompt, cropped_image])
-        list = ocr_result.text[:-3].split(" ")
-        print(ocr_result.text)
+        list = ocr_result.text.split(" ")
+        print(ocr_result.text,list)
         text = "".join(list[6:])
         print(text)
         
         opencodedbase64 = encodeImageIntoBase64("yolov5/runs/detect/exp/crop.jpg")
-        print(opencodedbase64)
+        # print(opencodedbase64)
         # result = {"image": opencodedbase64.decode('utf-8')}
         # opencodedbase64 = encodeImageIntoBase64(result_image_path)
         result = {"image": opencodedbase64.decode('utf-8')}
