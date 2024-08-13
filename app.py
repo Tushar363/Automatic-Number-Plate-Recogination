@@ -1,14 +1,18 @@
 from licensePlateDetection.pipeline.training_pipeline import TrainPipeline
-import sys,os
+import sys
+import os
 from licensePlateDetection.pipeline.training_pipeline import TrainPipeline
 from licensePlateDetection.utils.main_utils import decodeImage, encodeImageIntoBase64
-from flask import Flask, request, jsonify, render_template,Response
+from flask import Flask, request, jsonify, render_template, Response
 from flask_cors import CORS, cross_origin
 from licensePlateDetection.constant.application import APP_HOST, APP_PORT
 import shutil
+import re
+import json
+import requests
 import google.generativeai as genai
 import numpy as np
-from PIL import Image,ImageEnhance
+from PIL import Image, ImageEnhance
 app = Flask(__name__)
 CORS(app)
 
@@ -18,12 +22,11 @@ class ClientApp:
         self.filename = "inputImage.jpg"
 
 
-
 @app.route("/train")
 def trainRoute():
     obj = TrainPipeline()
     obj.run_pipeline()
-    return "Training Successfull!!" 
+    return "Training Successfull!!"
 
 
 @app.route("/")
@@ -31,20 +34,18 @@ def home():
     return render_template("index.html")
 
 
-
-@app.route("/predict", methods=['POST','GET'])
+@app.route("/predict", methods=['POST', 'GET'])
 @cross_origin()
-
 def predictRoute():
     try:
         image = request.json['image']
-        
+
         decodeImage(image, clApp.filename)
 
         os.system("cd yolov5/ && python detect.py --weights best.pt --img 416 --conf 0.5 --source ../data/inputImage.jpg --save-txt --save-conf")
          # Assuming YOLOv5 saves the result image and bounding box coordinates
         result_image_path = "yolov5/runs/detect/exp/inputImage.jpg"
-        
+
         bbox_path = "yolov5/runs/detect/exp/labels/inputImage.txt"
 
         # Load the image
@@ -75,29 +76,61 @@ def predictRoute():
 
             # Crop the image using the bounding box coordinates
             cropped_image = image.crop((x1, y1, x2, y2))
-            cropped_image=cropped_image.resize((720,360))
-            
+            cropped_image = cropped_image.resize((720, 360))
+
             enhancer = ImageEnhance.Sharpness(cropped_image)
-            cropped_image = enhancer.enhance(2.0) 
-            
+            cropped_image = enhancer.enhance(2.0)
+
             enhancer = ImageEnhance.Contrast(cropped_image)
-            cropped_image = enhancer.enhance(1.5) 
+            cropped_image = enhancer.enhance(1.5)
             # Save the cropped image (you can customize the save path)
             cropped_image_path = f"yolov5/runs/detect/exp/crop.jpg"
             cropped_image.save(cropped_image_path)
-            
-        # OCR part 
+
+        # OCR part
         os.environ["GOOGLE_API_KEY"] = 'AIzaSyBPo9ZnsOXe425u7742JRROwBPyg6wXNXc'
         genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
-        model = genai.GenerativeModel(model_name='gemini-1.5-pro', tools="code_execution")
+        model = genai.GenerativeModel(
+            model_name='gemini-1.5-pro', tools="code_execution")
         prompt = "Extract text from this image."
         ocr_result = model.generate_content([prompt, cropped_image])
         list = ocr_result.text.split(" ")
-        print(ocr_result.text,list)
+        list = list[:-1]
+        print(ocr_result.text, list)
         text = "".join(list[6:])
-        print(text)
-        
-        opencodedbase64 = encodeImageIntoBase64("yolov5/runs/detect/exp/crop.jpg")
+        if "." in text:
+            # index = text.index('.')
+            text = text.replace(".","")
+            print(text,len(text))
+        else:
+            pass
+        pattern = r'^[A-Z]{2}[0-9]{1,2}[A-Z]{1,2}[0-9]{4}$'
+        if re.match(pattern, text):
+            print(text,len(text))
+
+        #  fetching data from api
+        url = "https://rto-vehicle-information-verification-india.p.rapidapi.com/api/v1/rc/vehicleinfo"
+
+
+        payload = {
+            "reg_no": text,
+            "consent": "Y",
+            "consent_text": "I hear by declare my consent agreement for fetching my information via AITAN Labs API"
+        }
+        headers = {
+            "x-rapidapi-key": "7bade25494msh99f0ba1c6e571d0p1c70edjsn40fa10e3a26a",
+            "x-rapidapi-host": "rto-vehicle-information-verification-india.p.rapidapi.com",
+            "Content-Type": "application/json"
+        }
+
+        response = requests.post(url, json=payload, headers=headers)
+
+        print(response.json())
+        with open('data.json', 'w') as json_file:
+            json.dump(response.json(), json_file, indent=4)
+
+        opencodedbase64 = encodeImageIntoBase64(
+            "yolov5/runs/detect/exp/crop.jpg")
         # print(opencodedbase64)
         # result = {"image": opencodedbase64.decode('utf-8')}
         # opencodedbase64 = encodeImageIntoBase64(result_image_path)
