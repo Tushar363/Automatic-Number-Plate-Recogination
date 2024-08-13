@@ -126,8 +126,8 @@ def predictRoute():
         response = requests.post(url, json=payload, headers=headers)
 
         print(response.json())
-        with open('data.json', 'w') as json_file:
-            json.dump(response.json(), json_file, indent=4)
+        # with open('data.json', 'w') as json_file:
+        #     json.dump(response.json(), json_file, indent=4)
 
         opencodedbase64 = encodeImageIntoBase64(
             "yolov5/runs/detect/exp/crop.jpg")
