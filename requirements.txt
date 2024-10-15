@@ -58,7 +58,12 @@ setuptools>=70.0.0 # Snyk vulnerability fix
 # pip install google-generativeai
 # pycocotools>=2.0.6  # COCO mAP
 #  ocr
-easyocr
+
+google-generativeai
+protobuf
+
+# database
+pymongo
 
 
 -e .

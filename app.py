@@ -88,7 +88,7 @@ def predictRoute():
             cropped_image.save(cropped_image_path)
 
         # OCR part
-        os.environ["GOOGLE_API_KEY"] = 'AIzaSyBPo9ZnsOXe425u7742JRROwBPyg6wXNXc'
+        os.environ["GOOGLE_API_KEY"] = 'AIzaSyBjr00b-VhpvWzVlMGnpW2dW8JuvAMubQI'
         genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
         model = genai.GenerativeModel(
             model_name='gemini-1.5-pro', tools="code_execution")
@@ -101,39 +101,36 @@ def predictRoute():
         if "." in text:
             # index = text.index('.')
             text = text.replace(".","")
-            print(text,len(text))
+            print(text)
         else:
             pass
         pattern = r'^[A-Z]{2}[0-9]{1,2}[A-Z]{1,2}[0-9]{4}$'
         if re.match(pattern, text):
-            print(text,len(text))
+            print(text)
 
         #  fetching data from api
-        url = "https://rto-vehicle-information-verification-india.p.rapidapi.com/api/v1/rc/vehicleinfo"
+        # url = "https://rto-vehicle-information-verification-india.p.rapidapi.com/api/v1/rc/vehicleinfo"
 
 
-        payload = {
-            "reg_no": text,
-            "consent": "Y",
-            "consent_text": "I hear by declare my consent agreement for fetching my information via AITAN Labs API"
-        }
-        headers = {
-            "x-rapidapi-key": "7bade25494msh99f0ba1c6e571d0p1c70edjsn40fa10e3a26a",
-            "x-rapidapi-host": "rto-vehicle-information-verification-india.p.rapidapi.com",
-            "Content-Type": "application/json"
-        }
+        # payload = {
+        #     "reg_no": text,
+        #     "consent": "Y",
+        #     "consent_text": "I hear by declare my consent agreement for fetching my information via AITAN Labs API"
+        # }
+        # headers = {
+        #     "x-rapidapi-key": "7bade25494msh99f0ba1c6e571d0p1c70edjsn40fa10e3a26a",
+        #     "x-rapidapi-host": "rto-vehicle-information-verification-india.p.rapidapi.com",
+        #     "Content-Type": "application/json"
+        # }
 
-        response = requests.post(url, json=payload, headers=headers)
+        # response = requests.post(url, json=payload, headers=headers)
 
-        print(response.json())
+        # print(response.json())
         # with open('data.json', 'w') as json_file:
         #     json.dump(response.json(), json_file, indent=4)
 
         opencodedbase64 = encodeImageIntoBase64(
             "yolov5/runs/detect/exp/crop.jpg")
-        # print(opencodedbase64)
-        # result = {"image": opencodedbase64.decode('utf-8')}
-        # opencodedbase64 = encodeImageIntoBase64(result_image_path)
         result = {"image": opencodedbase64.decode('utf-8')}
         # os.remove("yolov5/runs")
         shutil.rmtree("yolov5/runs")
@@ -155,7 +152,7 @@ def predictRoute():
 @cross_origin()
 def predictLive():
     try:
-        os.system("cd yolov5/ && python detect.py --weights my_model.pt --img 416 --conf 0.5 --source 0")
+        os.system("cd yolov5/ && python detect.py --weights best.pt --img 416 --conf 0.5 --source 0 --save-txt --save-conf")
         os.remove("yolov5/runs")
         return "Camera starting!!" 
 
