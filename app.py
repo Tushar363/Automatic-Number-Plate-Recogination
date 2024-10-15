@@ -13,10 +13,12 @@ import requests
 import google.generativeai as genai
 import numpy as np
 from PIL import Image, ImageEnhance
+from licensePlateDetection.Database.database import ANPD_DB
 app = Flask(__name__)
 CORS(app)
 
-
+db_name = 'ANPD'
+collection_name = 'data'
 class ClientApp:
     def __init__(self):
         self.filename = "inputImage.jpg"
@@ -109,26 +111,32 @@ def predictRoute():
             print(text)
 
         #  fetching data from api
-        # url = "https://rto-vehicle-information-verification-india.p.rapidapi.com/api/v1/rc/vehicleinfo"
+        url = "https://rto-vehicle-information-verification-india.p.rapidapi.com/api/v1/rc/vehicleinfo"
 
 
-        # payload = {
-        #     "reg_no": text,
-        #     "consent": "Y",
-        #     "consent_text": "I hear by declare my consent agreement for fetching my information via AITAN Labs API"
-        # }
-        # headers = {
-        #     "x-rapidapi-key": "7bade25494msh99f0ba1c6e571d0p1c70edjsn40fa10e3a26a",
-        #     "x-rapidapi-host": "rto-vehicle-information-verification-india.p.rapidapi.com",
-        #     "Content-Type": "application/json"
-        # }
+        payload = {
+            "reg_no": text,
+            "consent": "Y",
+            "consent_text": "I hear by declare my consent agreement for fetching my information via AITAN Labs API"
+        }
+        headers = {
+            "x-rapidapi-key": "7bade25494msh99f0ba1c6e571d0p1c70edjsn40fa10e3a26a",
+            "x-rapidapi-host": "rto-vehicle-information-verification-india.p.rapidapi.com",
+            "Content-Type": "application/json"
+        }
 
-        # response = requests.post(url, json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers)
 
         # print(response.json())
-        # with open('data.json', 'w') as json_file:
-        #     json.dump(response.json(), json_file, indent=4)
-
+        # Data Inserte3d to Database
+        with open('data.json', 'w') as json_file:
+            json.dump(response.json(), json_file, indent=4)
+            
+        dbS = ANPD_DB("ANPD","anpr_data")
+        
+        dbS.insert_data("data.json")
+        os.remove("data.json")
+        
         opencodedbase64 = encodeImageIntoBase64(
             "yolov5/runs/detect/exp/crop.jpg")
         result = {"image": opencodedbase64.decode('utf-8')}
