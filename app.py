@@ -17,8 +17,6 @@ from licensePlateDetection.Database.database import ANPD_DB
 app = Flask(__name__)
 CORS(app)
 
-db_name = 'ANPD'
-collection_name = 'data'
 class ClientApp:
     def __init__(self):
         self.filename = "inputImage.jpg"
@@ -40,7 +38,9 @@ def home():
 @cross_origin()
 def predictRoute():
     try:
-        image = request.json['image']
+        data = request.get_json()
+        image = data.get("image")
+        # image = request.json['image']
 
         decodeImage(image, clApp.filename)
 
@@ -97,45 +97,50 @@ def predictRoute():
         prompt = "Extract text from this image."
         ocr_result = model.generate_content([prompt, cropped_image])
         list = ocr_result.text.split(" ")
-        list = list[:-1]
+        # list = list[:-1]
         print(ocr_result.text, list)
-        text = "".join(list[6:])
-        if "." in text:
-            # index = text.index('.')
-            text = text.replace(".","")
-            print(text)
+        # text = "".join(list[6:7])
+        pattern = r'^[A-Z]{2}[0-9]{1,2}[A-Z]{1,2}[0-9]{4}$'
+        for i in range(len(list)):
+
+            if "." in list[i]:
+                # index = text.index('.')
+                list[i] = list[i].replace(".","")
+                if re.match(pattern, list[i]):
+                    print(list[i])
+                    text = list[i]
+                    break
+                
         else:
             pass
-        pattern = r'^[A-Z]{2}[0-9]{1,2}[A-Z]{1,2}[0-9]{4}$'
-        if re.match(pattern, text):
-            print(text)
+
 
         #  fetching data from api
-        url = "https://rto-vehicle-information-verification-india.p.rapidapi.com/api/v1/rc/vehicleinfo"
+        # url = "https://rto-vehicle-information-verification-india.p.rapidapi.com/api/v1/rc/vehicleinfo"
 
 
-        payload = {
-            "reg_no": text,
-            "consent": "Y",
-            "consent_text": "I hear by declare my consent agreement for fetching my information via AITAN Labs API"
-        }
-        headers = {
-            "x-rapidapi-key": "7bade25494msh99f0ba1c6e571d0p1c70edjsn40fa10e3a26a",
-            "x-rapidapi-host": "rto-vehicle-information-verification-india.p.rapidapi.com",
-            "Content-Type": "application/json"
-        }
+        # payload = {
+        #     "reg_no": text,
+        #     "consent": "Y",
+        #     "consent_text": "I hear by declare my consent agreement for fetching my information via AITAN Labs API"
+        # }
+        # headers = {
+        #     "x-rapidapi-key": "7bade25494msh99f0ba1c6e571d0p1c70edjsn40fa10e3a26a",
+        #     "x-rapidapi-host": "rto-vehicle-information-verification-india.p.rapidapi.com",
+        #     "Content-Type": "application/json"
+        # }
 
-        response = requests.post(url, json=payload, headers=headers)
+        # response = requests.post(url, json=payload, headers=headers)
 
-        # print(response.json())
-        # Data Inserte3d to Database
-        with open('data.json', 'w') as json_file:
-            json.dump(response.json(), json_file, indent=4)
+        # # print(response.json())
+        # # Data Inserte3d to Database
+        # with open('data.json', 'w') as json_file:
+        #     json.dump(response.json(), json_file, indent=4)
             
-        dbS = ANPD_DB("ANPD","anpr_data")
+        # dbS = ANPD_DB("ANPD","anpr_data")
         
-        dbS.insert_data("data.json")
-        os.remove("data.json")
+        # dbS.insert_data("data.json")
+        # os.remove("data.json")
         
         opencodedbase64 = encodeImageIntoBase64(
             "yolov5/runs/detect/exp/crop.jpg")
@@ -152,7 +157,9 @@ def predictRoute():
         print(e)
         result = "Invalid input"
 
-    return jsonify(result)
+    # print(result)
+
+    return jsonify({"processed_image":result})
 
 
 
