@@ -32,20 +32,19 @@ class ANPD_DB:
                 print("Connection to MongoDB failed. Cannot insert data.")
                 return
             
-            existing_record = self.collection.find_one({"registration_number": vehicle_data["result"]["reg_no"]})
+            existing_record = self.collection.find_one({"registration_number": vehicle_data["data"]["registration_no"]})
             if existing_record:
                 print("Vehicle with this registration number already exists.")
                 return
             
             selected_data = {
-                "registration_number": vehicle_data["result"]["reg_no"],
-                "registration_date": vehicle_data["result"]["reg_date"],
-                "owner_name": vehicle_data["result"]["owner_name"],
-                "address": vehicle_data["result"]["current_full_address"],
-                "state": vehicle_data["result"]["state"],
-                "current_district_name": vehicle_data["result"]["current_district_name"],
-                "manufacturer": vehicle_data["result"]["vehicle_manufacturer_name"],
-                "model": vehicle_data["result"]["model"]
+                "registration_number": vehicle_data["data"]["registration_no"],
+                "registration_date": vehicle_data["data"]["registration_date"],
+                "owner_name": vehicle_data["data"]["owner_name"],
+                "fuel_type": vehicle_data["data"]["fuel_type"],
+                "registration_authority": vehicle_data["data"]["registration_authority"],
+                "model": vehicle_data["data"]["maker_model"],
+                "ownership":vehicle_data["data"]["ownership_desc"]
             }
             inserted_id = self.collection.insert_one(selected_data).inserted_id
             print(f"Data inserted with ID: {inserted_id}")
@@ -71,9 +70,11 @@ class ANPD_DB:
             
     def get_vehicle_by_registration_number(self, reg_no):
         try:
+            connection = self.connect()
             vehicle = self.collection.find_one({"registration_number": reg_no})
             if vehicle:
-                print(f"Vehicle found: {vehicle}")
+                # print(f"Vehicle found: {vehicle}")
+                return vehicle
             else:
                 print(f"No vehicle found with registration number: {reg_no}")
         except errors.PyMongoError as e:
@@ -88,5 +89,3 @@ class ANPD_DB:
                 print(f"No vehicle found with registration number: {reg_no}")
         except errors.PyMongoError as e:
             print(f"Failed to delete data from MongoDB: {e}")
-            
-

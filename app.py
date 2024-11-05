@@ -8,6 +8,7 @@ from flask_cors import CORS, cross_origin
 from licensePlateDetection.constant.application import APP_HOST, APP_PORT
 import shutil
 import re
+import io,base64
 import json
 import requests
 import google.generativeai as genai
@@ -116,28 +117,29 @@ def predictRoute():
 
 
         #  fetching data from api
-        # url = "https://rto-vehicle-information-verification-india.p.rapidapi.com/api/v1/rc/vehicleinfo"
 
+
+        # url = "https://rto-vehicle-information-india.p.rapidapi.com/getVehicleInfo"
 
         # payload = {
-        #     "reg_no": text,
+        #     "vehicle_no": text,
         #     "consent": "Y",
-        #     "consent_text": "I hear by declare my consent agreement for fetching my information via AITAN Labs API"
+        #     "consent_text": "I hereby give my consent for Eccentric Labs API to fetch my information"
         # }
         # headers = {
         #     "x-rapidapi-key": "7bade25494msh99f0ba1c6e571d0p1c70edjsn40fa10e3a26a",
-        #     "x-rapidapi-host": "rto-vehicle-information-verification-india.p.rapidapi.com",
+        #     "x-rapidapi-host": "rto-vehicle-information-india.p.rapidapi.com",
         #     "Content-Type": "application/json"
         # }
 
         # response = requests.post(url, json=payload, headers=headers)
 
-        # # print(response.json())
-        # # Data Inserte3d to Database
+        # print(response.json())
+        # Data Inserte3d to Database
         # with open('data.json', 'w') as json_file:
         #     json.dump(response.json(), json_file, indent=4)
             
-        # dbS = ANPD_DB("ANPD","anpr_data")
+        dbS = ANPD_DB("ANPD","anpr_data")
         
         # dbS.insert_data("data.json")
         # os.remove("data.json")
@@ -148,6 +150,13 @@ def predictRoute():
         # os.remove("yolov5/runs")
         shutil.rmtree("yolov5/runs")
 
+        print("connected")
+        a = dbS.get_vehicle_by_registration_number("UP32LC1224")
+        print(a)
+        response = {
+            "processed_image": result,
+            "reg_data":a
+         }
     except ValueError as val:
         print(val)
         return Response("Value not found inside  json data")
@@ -157,9 +166,7 @@ def predictRoute():
         print(e)
         result = "Invalid input"
 
-    # print(result)
-
-    return jsonify({"processed_image":result})
+    return jsonify(response)
 
 
 
@@ -180,4 +187,4 @@ def predictLive():
 
 if __name__ == "__main__":
     clApp = ClientApp()
-    app.run(host=APP_HOST, port=APP_PORT)
+    app.run(host=APP_HOST, port=8000)

@@ -22,13 +22,19 @@ function ImageUploader() {
         if (!image) return;
         
         try {
-            const response = await axios.post("http://127.0.0.1:8080/predict", {
-                image: image.split(",")[1] // Send only the base64 part after the comma
-            });
+            const response = await axios.post("http://127.0.0.1:8000/predict", {
+                image: image.split(",")[1] // Send only the base64 part after the comma,
+            },
+            {
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              });
             // Set the received base64 string as processed image
-            console.log(response.data.processed_image);
-            
-            setProcessedImage(`data:image/jpeg;base64,${response.data.processed_image}`);
+            // console.log(response.data.processed_image["image"]);
+            console.log(response.data.reg_data);
+            setProcessedImage(`data:image/jpeg;base64,${response.data.processed_image["image"]}`);
+            // setProcessedImage(response.data.processed_image)
         } catch (error) {
             console.error("Error uploading image:", error);
             alert("Image upload failed.");
