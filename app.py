@@ -10,6 +10,7 @@ import shutil
 import re
 import io,base64
 import json
+from bson import json_util
 import requests
 import google.generativeai as genai
 import numpy as np
@@ -152,10 +153,12 @@ def predictRoute():
 
         print("connected")
         a = dbS.get_vehicle_by_registration_number("UP32LC1224")
-        print(a)
+        # a = json.dumps(a[])
+        a1 = json.loads(json_util.dumps(a))
+        print(a1)
         response = {
             "processed_image": result,
-            "reg_data":a
+            "reg_data":a1
          }
     except ValueError as val:
         print(val)
