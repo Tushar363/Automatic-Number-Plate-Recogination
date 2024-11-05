@@ -31,9 +31,9 @@ def trainRoute():
     return "Training Successfull!!"
 
 
-@app.route("/")
-def home():
-    return render_template("index.html")
+# @app.route("/")
+# def home():
+#     return render_template("index.html")
 
 
 @app.route("/predict", methods=['POST', 'GET'])
@@ -120,30 +120,31 @@ def predictRoute():
         #  fetching data from api
 
 
-        # url = "https://rto-vehicle-information-india.p.rapidapi.com/getVehicleInfo"
 
-        # payload = {
-        #     "vehicle_no": text,
-        #     "consent": "Y",
-        #     "consent_text": "I hereby give my consent for Eccentric Labs API to fetch my information"
-        # }
-        # headers = {
-        #     "x-rapidapi-key": "7bade25494msh99f0ba1c6e571d0p1c70edjsn40fa10e3a26a",
-        #     "x-rapidapi-host": "rto-vehicle-information-india.p.rapidapi.com",
-        #     "Content-Type": "application/json"
-        # }
+        url = "https://rto-vehicle-information-india.p.rapidapi.com/getVehicleInfo"
 
-        # response = requests.post(url, json=payload, headers=headers)
+        payload = {
+            "vehicle_no": text,
+            "consent": "Y",
+            "consent_text": "I hereby give my consent for Eccentric Labs API to fetch my information"
+        }
+        headers = {
+            "x-rapidapi-key": "b829e79d3fmsh892801fec3fd5c7p17df1fjsnd5c7b2a1db3f",
+            "x-rapidapi-host": "rto-vehicle-information-india.p.rapidapi.com",
+            "Content-Type": "application/json"
+        }
 
-        # print(response.json())
+        response = requests.post(url, json=payload, headers=headers)
+
+        print(response.json())
         # Data Inserte3d to Database
-        # with open('data.json', 'w') as json_file:
-        #     json.dump(response.json(), json_file, indent=4)
+        with open('data.json', 'w') as json_file:
+            json.dump(response.json(), json_file, indent=4)
             
         dbS = ANPD_DB("ANPD","anpr_data")
         
-        # dbS.insert_data("data.json")
-        # os.remove("data.json")
+        dbS.insert_data("data.json")
+        os.remove("data.json")
         
         opencodedbase64 = encodeImageIntoBase64(
             "yolov5/runs/detect/exp/crop.jpg")
@@ -152,13 +153,12 @@ def predictRoute():
         shutil.rmtree("yolov5/runs")
 
         print("connected")
-        a = dbS.get_vehicle_by_registration_number("UP32LC1224")
-        # a = json.dumps(a[])
-        a1 = json.loads(json_util.dumps(a))
-        print(a1)
+        a = dbS.get_vehicle_by_registration_number(text)
+        reg_data = json.loads(json_util.dumps(a))
+        print(reg_data)
         response = {
             "processed_image": result,
-            "reg_data":a1
+            "reg_data":reg_data
          }
     except ValueError as val:
         print(val)

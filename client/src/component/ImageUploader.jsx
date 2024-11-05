@@ -57,7 +57,7 @@ function ImageUploader() {
             {processedImage && (
                 <div>
                     <h3>Processed Image</h3>
-                    {console.log(processedImage)}
+                    {/* {console.log(processedImage)} */}
                     <img src={processedImage} alt="Processed" style={{ width: 200, height: "auto" }} />
                 </div>
             )}
