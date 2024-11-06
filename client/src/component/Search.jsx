@@ -299,7 +299,7 @@ function Search() {
         if (!image) return;
         
         try {
-            const response = await axios.post("http://127.0.0.1:8000/predict", {
+            const response = await axios.post("https://automatic-number-plate-detection.onrender.com/predict", {
                 image: image.split(",")[1] // Send only the base64 part after the comma,
             },
             {
