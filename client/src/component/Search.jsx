@@ -386,8 +386,15 @@ function Search() {
                             {/* {data.map(item =>(
                             <li key={item.id}>{item.owner_name}</li>
                             ))} */}
-                            {console.log(data.fuel_type)
-                            }
+                            
+                              <li>{data.owner_name}</li>
+                              <li>{data.fuel_type}</li>
+                              <li>{data.model}</li>
+                              <li>{data.ownership}</li>
+                              <li>{data.registration_authority}</li>
+                              <li>{data.registration_date}</li>
+                              <li>{data.registration_number}</li>
+                            
                           </ul>
 
                           </p>

@@ -129,30 +129,30 @@ def predictRoute():
 
 
 
-        # url = "https://rto-vehicle-information-india.p.rapidapi.com/getVehicleInfo"
+        url = "https://rto-vehicle-information-india.p.rapidapi.com/getVehicleInfo"
 
-        # payload = {
-        #     "vehicle_no": text,
-        #     "consent": "Y",
-        #     "consent_text": "I hereby give my consent for Eccentric Labs API to fetch my information"
-        # }
-        # headers = {
-        #     "x-rapidapi-key": "b829e79d3fmsh892801fec3fd5c7p17df1fjsnd5c7b2a1db3f",
-        #     "x-rapidapi-host": "rto-vehicle-information-india.p.rapidapi.com",
-        #     "Content-Type": "application/json"
-        # }
+        payload = {
+            "vehicle_no": text,
+            "consent": "Y",
+            "consent_text": "I hereby give my consent for Eccentric Labs API to fetch my information"
+        }
+        headers = {
+            "x-rapidapi-key": "8642f16e02mshe724b9f8d96bed2p1dad69jsn338fee3585ed",
+            "x-rapidapi-host": "rto-vehicle-information-india.p.rapidapi.com",
+            "Content-Type": "application/json"
+        }
 
-        # response = requests.post(url, json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers)
 
-        # print(response.json())
+        print(response.json())
         # Data Inserte3d to Database
-        # with open('data.json', 'w') as json_file:
-        #     json.dump(response.json(), json_file, indent=4)
+        with open('data.json', 'w') as json_file:
+            json.dump(response.json(), json_file, indent=4)
             
         dbS = ANPD_DB("ANPD","anpr_data")
         
-        # dbS.insert_data("data.json")
-        # os.remove("data.json")
+        dbS.insert_data("data.json")
+        os.remove("data.json")
         
         opencodedbase64 = encodeImageIntoBase64(
             "yolov5/runs/detect/exp/crop.jpg")
@@ -162,7 +162,7 @@ def predictRoute():
 
         print("connected")
         # print(text)
-        a = dbS.get_vehicle_by_registration_number('UP32LC1224')
+        a = dbS.get_vehicle_by_registration_number(text)
         reg_data = json.loads(json_util.dumps(a))
         print(reg_data)
         response = {
