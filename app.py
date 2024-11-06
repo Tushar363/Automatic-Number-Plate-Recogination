@@ -96,55 +96,69 @@ def predictRoute():
         genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
         model = genai.GenerativeModel(
             model_name='gemini-1.5-pro', tools="code_execution")
-        prompt = "Extract text from this image."
+        prompt = "Extract license plate number from this image."
         ocr_result = model.generate_content([prompt, cropped_image])
         list = ocr_result.text.split(" ")
         # list = list[:-1]
         print(ocr_result.text, list)
         # text = "".join(list[6:7])
         pattern = r'^[A-Z]{2}[0-9]{1,2}[A-Z]{1,2}[0-9]{4}$'
-        for i in range(len(list)):
-
-            if "." in list[i]:
-                # index = text.index('.')
-                list[i] = list[i].replace(".","")
-                if re.match(pattern, list[i]):
-                    print(list[i])
-                    text = list[i]
-                    break
-                
+        text_if = "".join(list[5:8])
+        text_if = text_if.replace(".","")
+        text_else = "".join(list[5:9])
+        text_else = text_else.replace(".","")
+        print(text_if)    
+        if re.match(pattern,text_if):
+            # print(text)
+            text = text_if
+        
+        elif (re.match(pattern,text_else)):
+            text = text_else
+            
+            
         else:
-            pass
+            for i in range(len(list)):
 
+                if "." in list[i]:
+                    # index = text.index('.')
+                    list[i] = list[i].replace(".","")
+                    if re.match(pattern, list[i]):
+                        print(list[i])
+                        text = list[i]
+                        break
+                    
+                else:
+                    pass
 
+        print(text)
         #  fetching data from api
 
 
 
-        url = "https://rto-vehicle-information-india.p.rapidapi.com/getVehicleInfo"
+        # url = "https://rto-vehicle-information-india.p.rapidapi.com/getVehicleInfo"
 
-        payload = {
-            "vehicle_no": text,
-            "consent": "Y",
-            "consent_text": "I hereby give my consent for Eccentric Labs API to fetch my information"
-        }
-        headers = {
-            "x-rapidapi-key": "b829e79d3fmsh892801fec3fd5c7p17df1fjsnd5c7b2a1db3f",
-            "x-rapidapi-host": "rto-vehicle-information-india.p.rapidapi.com",
-            "Content-Type": "application/json"
-        }
+        # payload = {
+        #     "vehicle_no": text,
+        #     "consent": "Y",
+        #     "consent_text": "I hereby give my consent for Eccentric Labs API to fetch my information"
+        # }
+        # headers = {
+        #     "x-rapidapi-key": "b829e79d3fmsh892801fec3fd5c7p17df1fjsnd5c7b2a1db3f",
+        #     "x-rapidapi-host": "rto-vehicle-information-india.p.rapidapi.com",
+        #     "Content-Type": "application/json"
+        # }
 
-        response = requests.post(url, json=payload, headers=headers)
+        # response = requests.post(url, json=payload, headers=headers)
 
-        print(response.json())
+        # print(response.json())
         # Data Inserte3d to Database
-        with open('data.json', 'w') as json_file:
-            json.dump(response.json(), json_file, indent=4)
+        # with open('data.json', 'w') as json_file:
+        #     json.dump(response.json(), json_file, indent=4)
             
         dbS = ANPD_DB("ANPD","anpr_data")
         
-        dbS.insert_data("data.json")
-        os.remove("data.json")
+        # dbS.insert_data("data.json")
+        # os.remove("data.json")
         
         opencodedbase64 = encodeImageIntoBase64(
             "yolov5/runs/detect/exp/crop.jpg")
@@ -153,7 +167,8 @@ def predictRoute():
         shutil.rmtree("yolov5/runs")
 
         print("connected")
-        a = dbS.get_vehicle_by_registration_number(text)
+        # print(text)
+        a = dbS.get_vehicle_by_registration_number('UP32LC1224')
         reg_data = json.loads(json_util.dumps(a))
         print(reg_data)
         response = {

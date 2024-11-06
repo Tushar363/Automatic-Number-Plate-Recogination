@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import ImageUploader from './component/ImageUploader';
+// import ImageUploader from './component/ImageUploader';
+import Search from './component/Search';
 const App = () => {
  
 
   return (
     <>
-    <ImageUploader></ImageUploader>
+    {/* <ImageUploader></ImageUploader> */}
+    <Search></Search>
     </>
   );
 };
