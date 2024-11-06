@@ -145,7 +145,7 @@ def predictRoute():
         response = requests.post(url, json=payload, headers=headers)
 
         print(response.json())
-        # Data Inserte3d to Database
+        Data Inserte3d to Database
         with open('data.json', 'w') as json_file:
             json.dump(response.json(), json_file, indent=4)
             
@@ -162,7 +162,7 @@ def predictRoute():
 
         print("connected")
         # print(text)
-        a = dbS.get_vehicle_by_registration_number(text)
+        a = dbS.get_vehicle_by_registration_number("UP32LC1224")
         reg_data = json.loads(json_util.dumps(a))
         print(reg_data)
         response = {
