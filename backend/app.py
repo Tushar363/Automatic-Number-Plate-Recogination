@@ -30,12 +30,6 @@ def trainRoute():
     obj.run_pipeline()
     return "Training Successfull!!"
 
-
-# @app.route("/")
-# def home():
-#     return render_template("index.html")
-
-
 @app.route("/predict", methods=['POST', 'GET'])
 @cross_origin()
 def predictRoute():
