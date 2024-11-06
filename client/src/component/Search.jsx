@@ -271,8 +271,8 @@ export default Search;
 
 
 
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+// import { NavLink } from 'react-router-dom';
 // import logo from '../assets/image.png';
 // import { useAuth0 } from '@auth0/auth0-react';
 import axios from "axios";
@@ -280,6 +280,7 @@ import axios from "axios";
 function Search() {
     const [image, setImage] = useState(null);
     const [processedImage, setProcessedImage] = useState("");
+    const [data, setData] = useState([]);
 
     // Convert image to base64 and update the state
     const handleImageChange = (e) => {
@@ -310,12 +311,23 @@ function Search() {
             // console.log(response.data.processed_image["image"]);
             console.log(response.data.reg_data);
             setProcessedImage(`data:image/jpeg;base64,${response.data.processed_image["image"]}`);
+            setData(response.data.reg_data)
             // setProcessedImage(response.data.processed_image)
         } catch (error) {
             console.error("Error uploading image:", error);
             alert("Image upload failed.");
         }
     };
+
+    // Fetch data from API
+    
+    // useEffect(() => {
+    //     fetch('response.data.reg_data')
+    //    .then(response => response.json())
+    //    .then(data => setData(data))
+    //    .catch(error => console.error('Error:', error));
+    // }, []);
+
 
     // const {user} = useAuth0();
 
@@ -331,33 +343,33 @@ function Search() {
                         </div>
 
                        <div className="relative mt-10 border-b border-neutral-800 min-h-[630px] grid lg:grid-cols-2 justify-evenly">
-                        <div className="h-[35rem] w-[35rem] border text-center grid place-items-center mb-10">
+                        <div className="h-[35rem] w-[35rem] border text-center mb-10">
                           <div className="text-xl text-orange-500 flex flex-col justify-center items-center">
                             
-                          <h2>Image Uploader</h2>
-                          <input type="file" onChange={handleImageChange} />
+                          <h2 className='text-3xl mb-10 mt-5 text-red-500 underline'>Image Uploader</h2>
+                          <input type="file" className='mb-5' onChange={handleImageChange} />
                             
                           {image && (
                                 <div>
-                                    <h3>Original Image</h3>
+                                    <h3 className='mb-2'>Original Image</h3>
                                     <img src={image} alt="Uploaded Preview" style={{ width: 200, height: "auto" }} />
                                 </div>
                           )}
-                          <button onClick={handleUpload} className='border-4 text-white border-orange-500 mt-5 p-1 rounded-lg hover:shadow-orange-500'>Upload Image</button>
+                          <button onClick={handleUpload} className='border-4 text-white border-orange-500 mt-5 p-1 rounded-lg hover:border-red-700 hover:text-orange-500'>Upload Image</button>
                             
+                          
 
                           </div>
                         </div>
 
 
-                        <div className="h-[35rem] w-[35rem] border overflow-auto lg:ml-14">
+                        <div className="h-[35rem] w-[35rem] border overflow-auto lg:ml-14 flex flex-col content-center">
                           <p className='text-sm m-2'>
                             Detecting objects with AI and YOLO (You Only Look Once) in real-time. Upload an image to see the detection results.
                             <br />
                             Note: This is a demo and the accuracy may vary depending on the image and the YOLO model used.
                           </p>
 
-                          <p id="info" className='text-pretty text-orange-600'>
                           {processedImage && (
                                 <div>
                                     <h3>Processed Image</h3>
@@ -366,9 +378,16 @@ function Search() {
                                 </div>
                           )}
 
+                          <p id="info" className='text-pretty text-orange-600'>
+
                           <h1>Data from API will appear here: </h1>
+                          
                           <ul>
-                              
+                            {/* {data.map(item =>(
+                            <li key={item.id}>{item.owner_name}</li>
+                            ))} */}
+                            {console.log(data.fuel_type)
+                            }
                           </ul>
 
                           </p>
