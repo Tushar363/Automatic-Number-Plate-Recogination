@@ -154,6 +154,7 @@ function Search() {
     // Send base64 image string to Flask backend and receive processed image
     const handleUpload = async () => {
         if (!image) return;
+        alert("Processing the Image to Extract data")
         
         try {
             const response = await axios.post("http://127.0.0.1:8000/predict", {
@@ -192,28 +193,30 @@ function Search() {
                             <NavLink to = "/"><img src={logo}  alt="logo" className="w-16"></img></NavLink>
                           </div>
                           <h1 className='font-bold bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text lg:text-4xl md:text-3xl'>Detect with AI & YOLO</h1>
-                          <h1>{user.name}</h1>
+                          <h1 className='text-red-500 tracking-widest text-2xl'>{user.name}</h1>
                         </div>
 
                        <div className="relative mt-10 border-b border-neutral-800 min-h-[630px] grid lg:grid-cols-2 justify-evenly">
-                        <div className="min-h-[35rem] w-[35rem] h-fit border text-center mb-10">
+
+                        <div className="min-h-[35rem] w-[35rem] h-fit border text-center mb-10 rounded-md shadow-orange-400">
                           <div className="text-xl text-orange-500 flex flex-col justify-center items-center">
                             
-                          <h2 className='text-3xl mb-10 mt-5 text-red-500 underline'>Image Uploader</h2>
-                          <input type="file" className='mb-5' onChange={handleImageChange} />
-                            
+                          <h2 className='text-3xl mb-10 mt-5 text-red-500  p-1'>Image Uploader</h2>
+                          <input type="file" className='mb-5 w-[280px] file:bg-gradient-to-r from-orange-700 to-red-800 file:rounded-md' onChange={handleImageChange} />
+                          <div className='w-[20rem] h-[20rem] dark:bg-black-500 grid place-items-center'>
                           {image && (
                                 <div>
                                     <h3 className='mb-2'>Original Image</h3>
                                     <img src={image} alt="Uploaded Preview" style={{ width: 200, height: "fit-content" }} />
                                 </div>
                           )}
+                          </div>
                           <button onClick={handleUpload} className='border-4 text-white border-orange-500 mt-5 p-1 rounded-lg hover:border-red-700 hover:text-orange-500 mb-5'>Upload Image</button>                                    
                           </div>
                         </div>
 
 
-                        <div className="min-h-[35rem] w-[35rem] h-fit border overflow-auto lg:ml-14 flex flex-col content-center">
+                        <div className="min-h-[35rem] w-[35rem] h-fit border rounded-md shadow-orange-400 overflow-auto lg:ml-14 flex flex-col content-center">
                           <p className='text-sm m-2 text-center'>
                             Detecting objects with AI and YOLO (You Only Look Once) in real-time. Upload an image to see the detection results.
                             <br />
@@ -221,7 +224,7 @@ function Search() {
                           </p>
 
                           {processedImage && (
-                                <div className='m-5 content-center'>
+                                <div className='m-4 grid place-items-center'>
                                     <h3>Processed Image</h3>
                                     {/* {console.log(processedImage)} */}
                                     <img src={processedImage} alt="Processed" style={{ width: 200, height: "auto" }} />

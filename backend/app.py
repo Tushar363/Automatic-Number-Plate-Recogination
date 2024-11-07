@@ -86,7 +86,7 @@ def predictRoute():
             cropped_image.save(cropped_image_path)
 
         # OCR part
-        os.environ["GOOGLE_API_KEY"] = 'AIzaSyAVdqQGl_rPEbgTRiSnnuoYPts-AExsYGQ'
+        os.environ["GOOGLE_API_KEY"] = 'AIzaSyDdbmlkGkg02_FrkRZ-ONio8Jtq4TcdO6Y'
         genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
         model = genai.GenerativeModel(
             model_name='gemini-1.5-pro', tools="code_execution")
@@ -128,7 +128,6 @@ def predictRoute():
         #  fetching data from api
 
 
-
         url = "https://rto-vehicle-information-india.p.rapidapi.com/getVehicleInfo"
 
         payload = {
@@ -137,7 +136,7 @@ def predictRoute():
             "consent_text": "I hereby give my consent for Eccentric Labs API to fetch my information"
         }
         headers = {
-            "x-rapidapi-key": "8642f16e02mshe724b9f8d96bed2p1dad69jsn338fee3585ed",
+            "x-rapidapi-key": "a5a90247b7msh5f8ecea6cdf011ap1db4ccjsnf78439c55c0b",
             "x-rapidapi-host": "rto-vehicle-information-india.p.rapidapi.com",
             "Content-Type": "application/json"
         }
@@ -145,7 +144,7 @@ def predictRoute():
         response = requests.post(url, json=payload, headers=headers)
 
         print(response.json())
-        Data Inserte3d to Database
+        # Data Inserte3d to Database
         with open('data.json', 'w') as json_file:
             json.dump(response.json(), json_file, indent=4)
             
@@ -162,7 +161,7 @@ def predictRoute():
 
         print("connected")
         # print(text)
-        a = dbS.get_vehicle_by_registration_number("UP32LC1224")
+        a = dbS.get_vehicle_by_registration_number(text)
         reg_data = json.loads(json_util.dumps(a))
         print(reg_data)
         response = {
