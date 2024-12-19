@@ -9,7 +9,7 @@ type Props = {
 const Auth0Authenticator = ({ children }: Props) => {
     const domain ="dev-17a7be62tihqknfj.us.auth0.com";
     const clientId = "e7Qe9e9gSBkf32Psva4ajk0wYH0tW1Bh";
-    const redirectUri = "https://moonlit-donut-061770.netlify.app/";
+    const redirectUri = "http://localhost:5173";
 
     if(!domain || !clientId || !redirectUri){
         throw new Error('Missing Auth0 configuration variables');

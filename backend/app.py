@@ -86,43 +86,87 @@ def predictRoute():
             cropped_image.save(cropped_image_path)
 
         # OCR part
-        os.environ["GOOGLE_API_KEY"] = 'AIzaSyDdbmlkGkg02_FrkRZ-ONio8Jtq4TcdO6Y'
+        os.environ["GOOGLE_API_KEY"] = 'AIzaSyDVzPRFcXz_Oa-SpG-x4Q62tJREKxyUnJ8'
         genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
         model = genai.GenerativeModel(
-            model_name='gemini-1.5-pro', tools="code_execution")
+          model_name='gemini-1.5-pro-latest')
         prompt = "Extract license plate number from this image."
         ocr_result = model.generate_content([prompt, cropped_image])
         list = ocr_result.text.split(" ")
-        # list = list[:-1]
         print(ocr_result.text, list)
-        # text = "".join(list[6:7])
         pattern = r'^[A-Z]{2}[0-9]{1,2}[A-Z]{1,2}[0-9]{4}$'
-        text_if = "".join(list[5:8])
-        text_if = text_if.replace(".","")
-        text_else = "".join(list[5:9])
-        text_else = text_else.replace(".","")
-        print(text_if)    
-        if re.match(pattern,text_if):
-            # print(text)
-            text = text_if
-        
-        elif (re.match(pattern,text_else)):
-            text = text_else
+        if len(list)<2:
+            print("here",list[0])
+            if "." in list[0]:
+                # index = text.index('.')
+                list[0] = list[0].replace(".","")
+                if re.match(pattern, list[0]):
+                    print(list[0])
+                    text = list[0]
+            else:
+                if re.match(pattern, list[0]):
+                    print(list[0])
+                    text = list[0]
+        elif len(list)==3:
             
-            
-        else:
+            ls = list[0]+list[1]+list[2]
+            print("here",ls)
+            if "." in ls:
+                # index = text.index('.')
+                ls = ls.replace(".","")
+                if re.match(pattern, ls):
+                    print(ls)
+                    text = ls
+            else:
+                if re.match(pattern, ls):
+                    print(ls)
+                    text = ls
+        elif(len(list)>=4):
+            ls = ""
             for i in range(len(list)):
-
-                if "." in list[i]:
-                    # index = text.index('.')
-                    list[i] = list[i].replace(".","")
-                    if re.match(pattern, list[i]):
-                        print(list[i])
-                        text = list[i]
-                        break
+                ls += list[i]
+            print("here",ls)
+            if "." in ls:
+                ls = ls.replace(".","")
+                if re.match(pattern, ls):
+                    print(ls)
+                    text = ls
+            else:
+                if re.match(pattern, ls):
+                    print(ls)
+                    text = ls
                     
-                else:
-                    pass
+
+        # list = list[:-1]
+        
+        # text = "".join(list[6:7])
+        else:
+            text_if = "".join(list[5:8])
+            text_if = text_if.replace(".","")
+            text_else = "".join(list[5:9])
+            text_else = text_else.replace(".","")
+            print(text_if)    
+            if re.match(pattern,text_if):
+                # print(text)
+                text = text_if
+            
+            elif (re.match(pattern,text_else)):
+                text = text_else
+                
+                
+            else:
+                for i in range(len(list)):
+
+                    if "." in list[i]:
+                        # index = text.index('.')
+                        list[i] = list[i].replace(".","")
+                        if re.match(pattern, list[i]):
+                            print(list[i])
+                            text = list[i]
+                            break
+                        
+                    else:
+                        pass
 
         print(text)
         #  fetching data from api

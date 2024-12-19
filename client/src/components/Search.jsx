@@ -157,7 +157,7 @@ function Search() {
         alert("Processing the Image to Extract data")
         
         try {
-            const response = await axios.post("https://automatic-number-plate-detection.onrender.com/predict", {
+            const response = await axios.post("http://127.0.0.1:8000/predict", {
                 image: image.split(",")[1] // Send only the base64 part after the comma,
             },
             {
