@@ -140,78 +140,96 @@ def predictRoute():
         # list = list[:-1]
         
         # text = "".join(list[6:7])
-        else:
-            text_if = "".join(list[5:8])
-            text_if = text_if.replace(".","")
-            text_else = "".join(list[5:9])
-            text_else = text_else.replace(".","")
-            print(text_if)    
-            if re.match(pattern,text_if):
-                # print(text)
-                text = text_if
+        # else:
+        #     text_if = "".join(list[5:8])
+        #     text_if = text_if.replace(".","")
+        #     text_else = "".join(list[5:9])
+        #     text_else = text_else.replace(".","")
+        #     print(text_if)    
+        #     if re.match(pattern,text_if):
+        #         # print(text)
+        #         text = text_if
             
-            elif (re.match(pattern,text_else)):
-                text = text_else
+        #     elif (re.match(pattern,text_else)):
+        #         text = text_else
                 
                 
-            else:
-                for i in range(len(list)):
+        #     else:
+        #         for i in range(len(list)):
 
-                    if "." in list[i]:
-                        # index = text.index('.')
-                        list[i] = list[i].replace(".","")
-                        if re.match(pattern, list[i]):
-                            print(list[i])
-                            text = list[i]
-                            break
+        #             if "." in list[i]:
+        #                 # index = text.index('.')
+        #                 list[i] = list[i].replace(".","")
+        #                 if re.match(pattern, list[i]):
+        #                     print(list[i])
+        #                     text = list[i]
+        #                     break
                         
-                    else:
-                        pass
+        #             else:
+        #                 pass
 
         print(text)
-        #  fetching data from api
 
-
-        url = "https://rto-vehicle-information-india.p.rapidapi.com/getVehicleInfo"
-
-        payload = {
-            "vehicle_no": text,
-            "consent": "Y",
-            "consent_text": "I hereby give my consent for Eccentric Labs API to fetch my information"
-        }
-        headers = {
-            "x-rapidapi-key": "a5a90247b7msh5f8ecea6cdf011ap1db4ccjsnf78439c55c0b",
-            "x-rapidapi-host": "rto-vehicle-information-india.p.rapidapi.com",
-            "Content-Type": "application/json"
-        }
-
-        response = requests.post(url, json=payload, headers=headers)
-
-        print(response.json())
-        # Data Inserte3d to Database
-        with open('data.json', 'w') as json_file:
-            json.dump(response.json(), json_file, indent=4)
-            
-        dbS = ANPD_DB("ANPD","anpr_data")
-        
-        dbS.insert_data("data.json")
-        os.remove("data.json")
-        
         opencodedbase64 = encodeImageIntoBase64(
             "yolov5/runs/detect/exp/crop.jpg")
         result = {"image": opencodedbase64.decode('utf-8')}
         # os.remove("yolov5/runs")
         shutil.rmtree("yolov5/runs")
 
-        print("connected")
-        # print(text)
-        a = dbS.get_vehicle_by_registration_number(text)
-        reg_data = json.loads(json_util.dumps(a))
-        print(reg_data)
-        response = {
+        #  fetching data from api And Database
+
+        dbS = ANPD_DB("ANPD","anpr_data")
+        vechile_data  = dbS.get_vehicle_by_registration_number(text)
+        if vechile_data:
+            print(f"{text} number plate exist in database")
+            reg_data = json.loads(json_util.dumps(vechile_data))
+            response = {
             "processed_image": result,
             "reg_data":reg_data
-         }
+            }
+            print("data is dispalyed please check")
+            return jsonify(response)
+
+        else:
+            print("fetching data by api as it is not present in database")
+            url = "https://rto-vehicle-information-india.p.rapidapi.com/getVehicleInfo"
+
+            payload = {
+                "vehicle_no": text,
+                "consent": "Y",
+                "consent_text": "I hereby give my consent for Eccentric Labs API to fetch my information"
+            }
+            headers = {
+                "x-rapidapi-key": "a5a90247b7msh5f8ecea6cdf011ap1db4ccjsnf78439c55c0b",
+                "x-rapidapi-host": "rto-vehicle-information-india.p.rapidapi.com",
+                "Content-Type": "application/json"
+            }
+
+            response = requests.post(url, json=payload, headers=headers)
+
+            print(response.json())
+        # Data Inserte3d to Database
+            with open('data.json', 'w') as json_file:
+                json.dump(response.json(), json_file, indent=4)
+            
+        
+        
+            dbS.insert_data("data.json")
+            os.remove("data.json")
+            a = dbS.get_vehicle_by_registration_number(text)
+            reg_data = json.loads(json_util.dumps(a))
+        
+
+            print("connected")
+            # print(text)
+            
+            print(reg_data)
+            response = {
+                "processed_image": result,
+                "reg_data":reg_data
+            }
+
+            return jsonify(response)
     except ValueError as val:
         print(val)
         return Response("Value not found inside  json data")
@@ -222,16 +240,47 @@ def predictRoute():
         print(e)
         result = "Invalid input"
 
-    return jsonify(response)
+   
 
 
 
-@app.route("/live", methods=['GET'])
+@app.route("/text", methods=['GET'])
 @cross_origin()
 def predictLive():
     try:
-        os.system("cd yolov5/ && python detect.py --weights best.pt --img 416 --conf 0.5 --source 0 --save-txt --save-conf")
-        os.remove("yolov5/runs")
+
+        # CHECK IN DATABASE IS GIVEN PLATE EXSIST IF YES THEN WE RETURN DETAIL DIRECTLY FROM DATA BASE 
+        # ELSE FIRST WE GET DATA AND THEN STORE IN DATABASE THEN GET IT
+
+        license_plate = "HP58A0315"
+        dbS = ANPD_DB("ANPD","anpr_data")
+        vechile_data  = dbS.get_vehicle_by_registration_number(license_plate)
+        if vechile_data:
+            print(vechile_data)
+        else:
+            print("hi")
+            url = "https://rto-vehicle-information-india.p.rapidapi.com/getVehicleInfo"
+
+            payload = {
+                "vehicle_no": license_plate,
+                "consent": "Y",
+                "consent_text": "I hereby give my consent for Eccentric Labs API to fetch my information"
+            }
+            headers = {
+                "x-rapidapi-key": "a5a90247b7msh5f8ecea6cdf011ap1db4ccjsnf78439c55c0b",
+                "x-rapidapi-host": "rto-vehicle-information-india.p.rapidapi.com",
+                "Content-Type": "application/json"
+            }
+
+            response = requests.post(url, json=payload, headers=headers)
+
+            print(response.json())
+
+            with open('data.json', 'w') as json_file:
+                json.dump(response.json(), json_file, indent=4)
+            
+            dbS.insert_data("data.json")
+            os.remove("data.json")
         return "Camera starting!!" 
 
     except ValueError as val:

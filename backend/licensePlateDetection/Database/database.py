@@ -77,6 +77,7 @@ class ANPD_DB:
                 return vehicle
             else:
                 print(f"No vehicle found with registration number: {reg_no}")
+                return False
         except errors.PyMongoError as e:
             print(f"Failed to fetch data from MongoDB: {e}")
             
@@ -89,3 +90,5 @@ class ANPD_DB:
                 print(f"No vehicle found with registration number: {reg_no}")
         except errors.PyMongoError as e:
             print(f"Failed to delete data from MongoDB: {e}")
+
+    
