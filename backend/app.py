@@ -16,6 +16,7 @@ import google.generativeai as genai
 import numpy as np
 from PIL import Image, ImageEnhance
 from licensePlateDetection.Database.database import ANPD_DB
+from licensePlateDetection.Api.Api import Api_req
 app = Flask(__name__)
 CORS(app)
 
@@ -95,6 +96,8 @@ def predictRoute():
         list = ocr_result.text.split(" ")
         print(ocr_result.text, list)
         pattern = r'^[A-Z]{2}[0-9]{1,2}[A-Z]{1,2}[0-9]{4}$'
+
+        # Checking pattern of license plate using regex
         if len(list)<2:
             print("here",list[0])
             if "." in list[0]:
@@ -169,7 +172,8 @@ def predictRoute():
         #                 pass
 
         print(text)
-
+        
+        # Dealing with crop image
         opencodedbase64 = encodeImageIntoBase64(
             "yolov5/runs/detect/exp/crop.jpg")
         result = {"image": opencodedbase64.decode('utf-8')}
@@ -180,6 +184,7 @@ def predictRoute():
 
         dbS = ANPD_DB("ANPD","anpr_data")
         vechile_data  = dbS.get_vehicle_by_registration_number(text)
+
         if vechile_data:
             print(f"{text} number plate exist in database")
             reg_data = json.loads(json_util.dumps(vechile_data))
@@ -192,25 +197,11 @@ def predictRoute():
 
         else:
             print("fetching data by api as it is not present in database")
-            url = "https://rto-vehicle-information-india.p.rapidapi.com/getVehicleInfo"
 
-            payload = {
-                "vehicle_no": text,
-                "consent": "Y",
-                "consent_text": "I hereby give my consent for Eccentric Labs API to fetch my information"
-            }
-            headers = {
-                "x-rapidapi-key": "a5a90247b7msh5f8ecea6cdf011ap1db4ccjsnf78439c55c0b",
-                "x-rapidapi-host": "rto-vehicle-information-india.p.rapidapi.com",
-                "Content-Type": "application/json"
-            }
-
-            response = requests.post(url, json=payload, headers=headers)
-
-            print(response.json())
-        # Data Inserte3d to Database
+            res_data = Api_req().fetchApi(text)
+        # Data Inserted to Database
             with open('data.json', 'w') as json_file:
-                json.dump(response.json(), json_file, indent=4)
+                json.dump(res_data,json_file,indent=4)
             
         
         
@@ -244,44 +235,45 @@ def predictRoute():
 
 
 
-@app.route("/text", methods=['GET'])
+@app.route("/text", methods=['POST'])
 @cross_origin()
-def predictLive():
+def predictText():
     try:
 
         # CHECK IN DATABASE IS GIVEN PLATE EXSIST IF YES THEN WE RETURN DETAIL DIRECTLY FROM DATA BASE 
         # ELSE FIRST WE GET DATA AND THEN STORE IN DATABASE THEN GET IT
-
-        license_plate = "HP58A0315"
+        data = request.get_json()
+        license_plate = data.get("text")
+        print(license_plate)
+        # license_plate = "HP58A0315"
         dbS = ANPD_DB("ANPD","anpr_data")
         vechile_data  = dbS.get_vehicle_by_registration_number(license_plate)
         if vechile_data:
             print(vechile_data)
+            reg_data = json.loads(json_util.dumps(vechile_data))
+            response = {
+                "reg_data":reg_data
+            }
+            print(response)
+            return jsonify(response)
+
         else:
-            print("hi")
-            url = "https://rto-vehicle-information-india.p.rapidapi.com/getVehicleInfo"
+            print("fetching from api")
 
-            payload = {
-                "vehicle_no": license_plate,
-                "consent": "Y",
-                "consent_text": "I hereby give my consent for Eccentric Labs API to fetch my information"
-            }
-            headers = {
-                "x-rapidapi-key": "a5a90247b7msh5f8ecea6cdf011ap1db4ccjsnf78439c55c0b",
-                "x-rapidapi-host": "rto-vehicle-information-india.p.rapidapi.com",
-                "Content-Type": "application/json"
-            }
-
-            response = requests.post(url, json=payload, headers=headers)
-
-            print(response.json())
-
+            res_data = Api_req().fetchApi(license_plate)
             with open('data.json', 'w') as json_file:
-                json.dump(response.json(), json_file, indent=4)
+                json.dump(res_data,json_file,indent=4)
             
             dbS.insert_data("data.json")
             os.remove("data.json")
-        return "Camera starting!!" 
+            vechile_data  = dbS.get_vehicle_by_registration_number(license_plate)
+            reg_data = json.loads(json_util.dumps(vechile_data))
+            response = {
+                "reg_data":reg_data
+            }
+            print(response)
+            return jsonify(response)
+
 
     except ValueError as val:
         print(val)

@@ -12,6 +12,7 @@ import Contact from './components/Contact.jsx'
 import Form from './components/Form.jsx'
 import Search from './components/Search.jsx'
 import NavBar from './components/NavBar.jsx'
+import SearchText from './components/searchText.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 
@@ -56,6 +57,10 @@ const router = createBrowserRouter([
     path: "/Search",
     element: <><div className="max-w-7xl mx-auto pt-5 px-6"><Search/></div></>
   },
+  {
+    path: "/SearchText",
+    element: <><div className="max-w-7xl mx-auto pt-5 px-6"><SearchText/></div></>
+  }
 ])
 
 createRoot(document.getElementById('root')).render(

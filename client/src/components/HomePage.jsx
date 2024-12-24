@@ -19,6 +19,7 @@ const {isAuthenticated} = useAuth0();
         <div className="flex justify-center m-10">
             <NavLink to ="/Register" className="bg-gradient-to-r from-orange-500 to-orange-800 py-3 px-4 mx-3 rounded-md cursor-pointer">Start for free</NavLink>
         {isAuthenticated && <NavLink to ="/Search" className="bg-gradient-to-r from-orange-500 to-orange-800 py-3 px-4 mx-3 rounded-md cursor-pointer">Search</NavLink>}
+        {isAuthenticated && <NavLink to ="/SearchText" className="bg-gradient-to-r from-orange-500 to-orange-800 py-3 px-4 mx-3 rounded-md cursor-pointer">Search Text</NavLink>}
         </div>
         <div className="flex justify-center mt-10">
             <img src={img} alt="Image" className="rounded-lg w-1/2 border border-orange-700 shadow-orange-400 mx-2 my-4"></img>
