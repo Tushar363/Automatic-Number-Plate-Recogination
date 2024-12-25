@@ -10,13 +10,15 @@ const SearchText = () => {
     
     // Send base64 image string to Flask backend and receive processed image
     const handleUpload = async () => {
-        setTexts(document.getElementById('lsText').value);
-
-        if (!texts) alert("Hello");
-        alert("Processing the Text to Extract data")
+      
+      // setTexts(document.getElementById('lsText').value);
+      console.log(texts);
+      
+      if (texts=="")  return alert("Plz enter the license plate number...") ;
+      alert("Processing the Text to Extract data")
+      
+      try {
         
-        try {
-
             const response = await axios.post("http://127.0.0.1:8000/text", {
             text: texts
           },
@@ -60,8 +62,8 @@ const SearchText = () => {
        <div className="text-xl text-orange-500 flex flex-col justify-center items-center">
          
        <h2 className='text-3xl mb-5 mt-5 text-red-500  p-1'>Detect Via License Plate Number</h2>
-       <label className='text-md'>Enter Licence Plate Number :
-       <input type="text" id="lsText" className='mb-5 ml-2 p-1 text-white border-2 border-red-800 rounded-md' />
+       <label className='text-md'>Enter Licence Plate Number :<input type="text" id="lsText" className='mb-5 ml-2 p-1 text-white border-2 border-red-800 rounded-md' onChange={(event) => setTexts(event.target.value)} />
+       
        </label>
        <button onClick={handleUpload} className='border-4 text-white border-orange-500 mt-5 p-1 rounded-lg hover:border-red-700 hover:text-orange-500 mb-5'>Search</button>                                    
        </div>
@@ -80,7 +82,7 @@ const SearchText = () => {
       <h1 className='text-center mt-2'>Data from API will appear here: </h1>
     
                               
-      <ul id='details' className='m-5 p-5 border-2 border-white rounded-xl hidden'>
+      <ul id='details' className='m-5 p-5 border-2 border-white rounded-xl hidden text-center'>
         {console.log(data)}
         <li><span className='text-white'>Owner Name: </span>{data.owner_name}</li>
         <li><span className='text-white'>Fuel Type: </span>{data.fuel_type}</li>
