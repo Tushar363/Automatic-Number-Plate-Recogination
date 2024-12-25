@@ -101,75 +101,31 @@ def predictRoute():
         if len(list)<2:
             print("here",list[0])
             if "." in list[0]:
-                # index = text.index('.')
                 list[0] = list[0].replace(".","")
-                if re.match(pattern, list[0]):
-                    print(list[0])
-                    text = list[0]
+                text = list[0]
             else:
-                if re.match(pattern, list[0]):
-                    print(list[0])
-                    text = list[0]
-        elif len(list)==3:
-            
-            ls = list[0]+list[1]+list[2]
-            print("here",ls)
-            if "." in ls:
-                # index = text.index('.')
-                ls = ls.replace(".","")
-                if re.match(pattern, ls):
-                    print(ls)
-                    text = ls
-            else:
-                if re.match(pattern, ls):
-                    print(ls)
-                    text = ls
-        elif(len(list)>=4):
+                text = list[0]
+        elif(len(list)>=2):
             ls = ""
             for i in range(len(list)):
                 ls += list[i]
             print("here",ls)
             if "." in ls:
                 ls = ls.replace(".","")
-                if re.match(pattern, ls):
-                    print(ls)
-                    text = ls
+                text = ls
             else:
-                if re.match(pattern, ls):
-                    print(ls)
-                    text = ls
+                text = ls
                     
-
-        # list = list[:-1]
+        for i in range(len(text)):
+            if (i == 2 or i ==3 or i== 6 or i==7 or i==8 or i==9):
+                if text[i] == "O":
+                    text = text[:i] + "0" + text[i+1:]
         
-        # text = "".join(list[6:7])
-        # else:
-        #     text_if = "".join(list[5:8])
-        #     text_if = text_if.replace(".","")
-        #     text_else = "".join(list[5:9])
-        #     text_else = text_else.replace(".","")
-        #     print(text_if)    
-        #     if re.match(pattern,text_if):
-        #         # print(text)
-        #         text = text_if
-            
-        #     elif (re.match(pattern,text_else)):
-        #         text = text_else
-                
-                
-        #     else:
-        #         for i in range(len(list)):
-
-        #             if "." in list[i]:
-        #                 # index = text.index('.')
-        #                 list[i] = list[i].replace(".","")
-        #                 if re.match(pattern, list[i]):
-        #                     print(list[i])
-        #                     text = list[i]
-        #                     break
-                        
-        #             else:
-        #                 pass
+        if re.match(pattern,text):
+            text = text
+        else:
+            print("regex not match ",text)
+            return
 
         print(text)
         
@@ -244,8 +200,7 @@ def predictText():
         # ELSE FIRST WE GET DATA AND THEN STORE IN DATABASE THEN GET IT
         data = request.get_json()
         license_plate = data.get("text")
-        print(license_plate)
-        # license_plate = "HP58A0315"
+
         dbS = ANPD_DB("ANPD","anpr_data")
         vechile_data  = dbS.get_vehicle_by_registration_number(license_plate)
         if vechile_data:
@@ -254,7 +209,6 @@ def predictText():
             response = {
                 "reg_data":reg_data
             }
-            print(response)
             return jsonify(response)
 
         else:
