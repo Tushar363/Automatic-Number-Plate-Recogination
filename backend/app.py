@@ -240,6 +240,8 @@ def predictLive():
                 cv2.imwrite(crop_path, crop_img)
                 print(f"Saved: {crop_path}")
                 break
+
+
         result_image_path = "plates/crop_0_0.jpg"
         cropped_image = Image.open(result_image_path)
         cropped_image = cropped_image.resize((720, 360))
@@ -251,8 +253,9 @@ def predictLive():
         text = ocr_detection().extracting_text(cropped_image)
         print(text)
         os.remove("plates/crop_0_0.jpg")
-        license_plate = text
 
+
+        license_plate = text
         dbS = ANPD_DB("ANPD","anpr_data")
         vechile_data  = dbS.get_vehicle_by_registration_number(license_plate)
         if vechile_data:
