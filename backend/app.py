@@ -6,6 +6,9 @@ from licensePlateDetection.utils.main_utils import decodeImage, encodeImageIntoB
 from flask import Flask, request, jsonify, render_template, Response
 from flask_cors import CORS, cross_origin
 from licensePlateDetection.constant.application import APP_HOST, APP_PORT
+from licensePlateDetection.Database.database import ANPD_DB
+from licensePlateDetection.Api.Api import Api_req
+from licensePlateDetection.Ocr.Ocr import ocr_detection
 import shutil
 import re
 import io,base64
@@ -15,8 +18,8 @@ import requests
 import google.generativeai as genai
 import numpy as np
 from PIL import Image, ImageEnhance
-from licensePlateDetection.Database.database import ANPD_DB
-from licensePlateDetection.Api.Api import Api_req
+import torch
+import cv2
 app = Flask(__name__)
 CORS(app)
 
@@ -87,47 +90,8 @@ def predictRoute():
             cropped_image.save(cropped_image_path)
 
         # OCR part
-        os.environ["GOOGLE_API_KEY"] = 'AIzaSyDVzPRFcXz_Oa-SpG-x4Q62tJREKxyUnJ8'
-        genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
-        model = genai.GenerativeModel(
-          model_name='gemini-1.5-pro-latest')
-        prompt = "Extract license plate number from this image."
-        ocr_result = model.generate_content([prompt, cropped_image])
-        list = ocr_result.text.split(" ")
-        print(ocr_result.text, list)
-        pattern = r'^[A-Z]{2}[0-9]{1,2}[A-Z]{1,2}[0-9]{4}$'
-
-        # Checking pattern of license plate using regex
-        if len(list)<2:
-            print("here",list[0])
-            if "." in list[0]:
-                list[0] = list[0].replace(".","")
-                text = list[0]
-            else:
-                text = list[0]
-        elif(len(list)>=2):
-            ls = ""
-            for i in range(len(list)):
-                ls += list[i]
-            print("here",ls)
-            if "." in ls:
-                ls = ls.replace(".","")
-                text = ls
-            else:
-                text = ls
-                    
-        for i in range(len(text)):
-            if (i == 2 or i ==3 or i== 6 or i==7 or i==8 or i==9):
-                if text[i] == "O":
-                    text = text[:i] + "0" + text[i+1:]
-        
-        if re.match(pattern,text):
-            text = text
-        else:
-            print("regex not match ",text)
-            return
-
-        print(text)
+        print("extracting text")
+        text = ocr_detection().extracting_text(cropped_image)
         
         # Dealing with crop image
         opencodedbase64 = encodeImageIntoBase64(
@@ -232,10 +196,98 @@ def predictText():
     except ValueError as val:
         print(val)
         return Response("Value not found inside  json data")
-    
 
+@app.route("/live", methods=['GET'])
+@cross_origin()
+def predictLive():
+    try:
+        haar_cascade_path = "model/haarcascade_russian_plate_number.xml"
+        crop_cascade = cv2.CascadeClassifier(haar_cascade_path)
 
+        # Directory to save detected crops
+        save_dir = "plates"
+        os.makedirs(save_dir, exist_ok=True)
+        cap = cv2.VideoCapture(1)  # Open webcam
+        cap.set(3, 640) # width
+        cap.set(4, 480) #height
+        if not cap.isOpened():
+            return jsonify({"error": "Unable to access the camera"}), 500
 
+        crop_count = 0
+
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                print("Failed to grab frame.")
+                break
+
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            crops = crop_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+            for (x, y, w, h) in crops:
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+                # img_roi = frame[y:y + h, x:x + w]
+            
+            cv2.imshow("Crop Detection", frame)
+
+            # Press 'Q' to save detected crops and quit
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord('q'):
+                # for i, (x, y, w, h) in enumerate(crops):
+                crop_img = frame[y:y + h, x:x + w]
+                # crop_img = img_roi
+                crop_path = os.path.join(save_dir, f"crop_{crop_count}_{'0'}.jpg")
+                cv2.imwrite(crop_path, crop_img)
+                print(f"Saved: {crop_path}")
+                break
+        result_image_path = "plates/crop_0_0.jpg"
+        cropped_image = Image.open(result_image_path)
+        cropped_image = cropped_image.resize((720, 360))
+        enhancer = ImageEnhance.Sharpness(cropped_image)
+        cropped_image = enhancer.enhance(2.0)
+        enhancer = ImageEnhance.Contrast(cropped_image)
+        cropped_image = enhancer.enhance(1.5)
+        print("extracting text")
+        text = ocr_detection().extracting_text(cropped_image)
+        print(text)
+        os.remove("plates/crop_0_0.jpg")
+        license_plate = text
+
+        dbS = ANPD_DB("ANPD","anpr_data")
+        vechile_data  = dbS.get_vehicle_by_registration_number(license_plate)
+        if vechile_data:
+            print(vechile_data)
+            reg_data = json.loads(json_util.dumps(vechile_data))
+            response = {
+                    "reg_data":reg_data
+                }
+            return jsonify(response)
+
+        else:
+            print("fetching from api")
+
+            res_data = Api_req().fetchApi(license_plate)
+            with open('data.json', 'w') as json_file:
+                json.dump(res_data,json_file,indent=4)
+                
+            dbS.insert_data("data.json")
+            os.remove("data.json")
+            vechile_data  = dbS.get_vehicle_by_registration_number(license_plate)
+            reg_data = json.loads(json_util.dumps(vechile_data))
+            response = {
+                    "reg_data":reg_data
+                }
+            print(response)
+            return jsonify(response)
+        
+        cap.release()
+
+        return jsonify({"message": "Detection ended and crops saved."})
+    except Exception as e:
+        print(e)
+
+        
 if __name__ == "__main__":
     clApp = ClientApp()
+    cv2.destroyAllWindows()
     app.run(host=APP_HOST, port=8000)
