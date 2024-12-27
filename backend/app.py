@@ -6,7 +6,7 @@ from licensePlateDetection.utils.main_utils import decodeImage, encodeImageIntoB
 from flask import Flask, request, jsonify, render_template, Response
 from flask_cors import CORS, cross_origin
 from licensePlateDetection.constant.application import APP_HOST, APP_PORT
-from licensePlateDetection.Database.database import ANPD_DB
+from licensePlateDetection.Database.anpr_database import ANPD_DB
 from licensePlateDetection.Api.Api import Api_req
 from licensePlateDetection.Ocr.Ocr import ocr_detection
 import shutil
@@ -252,6 +252,9 @@ def predictLive():
         print("extracting text")
         text = ocr_detection().extracting_text(cropped_image)
         print(text)
+        opencodedbase64 = encodeImageIntoBase64(
+            result_image_path)
+        result = {"image": opencodedbase64.decode('utf-8')}
         os.remove("plates/crop_0_0.jpg")
 
 
@@ -262,6 +265,7 @@ def predictLive():
             print(vechile_data)
             reg_data = json.loads(json_util.dumps(vechile_data))
             response = {
+                    "processed_image": result,
                     "reg_data":reg_data
                 }
             return jsonify(response)
@@ -278,6 +282,7 @@ def predictLive():
             vechile_data  = dbS.get_vehicle_by_registration_number(license_plate)
             reg_data = json.loads(json_util.dumps(vechile_data))
             response = {
+                    "processed_image": result,
                     "reg_data":reg_data
                 }
             print(response)
