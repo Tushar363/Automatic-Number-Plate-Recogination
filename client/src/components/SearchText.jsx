@@ -1,8 +1,12 @@
+// Search by entering license plate number (text)
+
 import { NavLink } from 'react-router-dom';
 import logo from '../assets/image.png';
 import { useAuth0 } from '@auth0/auth0-react';
 import axios from "axios";
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { useAuth } from "../contexts/AuthContext";
 
 const SearchText = () => {
   const [texts, setTexts] = useState(null);
@@ -14,8 +18,9 @@ const SearchText = () => {
       // setTexts(document.getElementById('lsText').value);
       console.log(texts);
       
-      if (texts=="")  return alert("Plz enter the license plate number...") ;
-      alert("Processing the Text to Extract data")
+      if (texts == "")  return toast("Please enter the license plate number...") ;
+      // alert("Processing the Text to Extract data")
+      toast.info("Processing the Text to Extract data")
       
       try {
         
@@ -38,12 +43,16 @@ const SearchText = () => {
             
         } catch (error) {
             console.error("Error uploading:", error);
-            alert(error);
+            // alert(error);
+            toast.error("Failed to fetch data !");
         }
     };
 
 
-    const {user} = useAuth0();
+    const {user} = useAuth0(); // Auth0
+    const {currentUser} = useAuth(); // Firebase
+    const {isAuthenticated} = useAuth0();
+    const {userLoggedIn} = useAuth();
 
   return (
    <div className=''>
@@ -53,7 +62,8 @@ const SearchText = () => {
         <NavLink to = "/"><img src={logo}  alt="logo" className="w-16"></img></NavLink>
       </div>
       <h1 className='font-bold bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text lg:text-4xl md:text-3xl'>Detect with AI & YOLO</h1>
-      <h1 className='text-red-500 tracking-widest text-2xl'>{user.name}</h1>
+      {isAuthenticated && <h1 className='text-red-500 tracking-widest text-2xl'>{user.name}</h1>}
+      {userLoggedIn && <h1 className='text-red-500 tracking-widest text-2xl'>{currentUser.email}</h1>}
     </div>
     
     <div className="relative mt-10 border-b border-neutral-800 min-h-[630px] grid justify-evenly">

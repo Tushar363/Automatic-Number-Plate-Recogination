@@ -1,3 +1,5 @@
+// This is not used in the project, it was just for practice
+
 import {useState, useEffect} from 'react';
 
 function Fetch(){

@@ -5,7 +5,7 @@ import re
 class ocr_detection:
 
     def extracting_text(self,cropped_image):
-        os.environ["GOOGLE_API_KEY"] = 'AIzaSyDVzPRFcXz_Oa-SpG-x4Q62tJREKxyUnJ8'
+        os.environ["GOOGLE_API_KEY"] = 'AIzaSyBLGiR8vhLf_EY9LpVle2ad_xnmJRzQDBY'
         genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
         model = genai.GenerativeModel(
                 model_name='gemini-1.5-pro-latest')

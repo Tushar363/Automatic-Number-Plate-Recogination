@@ -1,3 +1,5 @@
+// Navbar used when ligged in using Auth0
+
 import { useAuth0 } from "@auth0/auth0-react"
 import {Menu, X} from "lucide-react";
 import { useState } from "react";
@@ -19,7 +21,7 @@ const LoggedInNavBar = () => {
                 <div className="flex items-center flex-shrink-0">
                     <NavLink to = "/"><img src={image}  alt="logo" className="w-16"></img></NavLink>
                 </div>
-                <ul className="hidden lg:flex ml-14 space-x-12">
+                <ul className="hidden lg:flex ml-32 space-x-12">
                     <NavLink to = "/" className={(e)=>{return e.isActive ? "text-orange-400" : ""}}><li className="cursor-pointer hover:text-orange-400">Home</li></NavLink>
                     <NavLink to = "/FeaturesSection" className={(e)=>{return e.isActive ? "text-orange-400" : ""}}><li className="cursor-pointer hover:text-orange-400">Features</li></NavLink>
                     <NavLink to = "/About" className={(e)=>{return e.isActive ? "text-orange-400" : ""}}><li className="cursor-pointer hover:text-orange-400">About</li></NavLink>
@@ -36,6 +38,7 @@ const LoggedInNavBar = () => {
             </div>
             {mobileMenuOpen && (
                 <div className="fixed right-0 z-20 bg-neutral-900 w-full p-12 flex flex-col justify-center items-center lg:hidden">
+                    <h1>Welcome, {user.name}</h1>
                     <ul>
                     <NavLink to = "/" className={(e)=>{return e.isActive ? "text-orange-400" : ""}}><li className="cursor-pointer py-4 hover:text-orange-400">Home</li></NavLink>
                     <NavLink to = "/FeaturesSection" className={(e)=>{return e.isActive ? "text-orange-400" : ""}}><li className="cursor-pointer py-4 hover:text-orange-400">Features</li></NavLink>

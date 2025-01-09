@@ -125,13 +125,15 @@ export default Search;
 */
 
 
-
+//Search by uploading license plate image
 
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import logo from '../assets/image.png';
 import { useAuth0 } from '@auth0/auth0-react';
 import axios from "axios";
+import { toast } from 'sonner';
+import { useAuth } from "../contexts/AuthContext";
 
 function Search() {
     const [image, setImage] = useState(null);
@@ -154,7 +156,8 @@ function Search() {
     // Send base64 image string to Flask backend and receive processed image
     const handleUpload = async () => {
         if (!image) return;
-        alert("Processing the Image to Extract data")
+        // alert("Processing the Image to Extract data")
+        toast.success("Processing the Image to Extract data")
         
         try {
             const response = await axios.post("http://127.0.0.1:8000/predict", {
@@ -178,22 +181,27 @@ function Search() {
             
         } catch (error) {
             console.error("Error uploading image:", error);
-            alert("Image upload failed.");
+            // alert("Image upload failed.");
+            toast.error("Image upload failed !");
         }
     };
 
 
-    const {user} = useAuth0();
+    const {user} = useAuth0(); // Auth0
+    const {currentUser} = useAuth(); // Firebase
+    const {isAuthenticated} = useAuth0();
+    const {userLoggedIn} = useAuth();
 
     return (
-    
-                <div className=''>
+      
+      <div className=''>
                         <div className="flex justify-around items-center">
                           <div className="flex items-center flex-shrink-0">
                             <NavLink to = "/"><img src={logo}  alt="logo" className="w-16"></img></NavLink>
                           </div>
                           <h1 className='font-bold bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text lg:text-4xl md:text-3xl'>Detect with AI & YOLO</h1>
-                          <h1 className='text-red-500 tracking-widest text-2xl'>{user.name}</h1>
+                          {isAuthenticated && <h1 className='text-red-500 tracking-widest text-2xl'>{user.name}</h1>}
+                          {userLoggedIn && <h1 className='text-red-500 tracking-widest text-2xl'>{currentUser.email}</h1>}
                         </div>
 
                        <div className="relative mt-10 border-b border-neutral-800 min-h-[630px] grid lg:grid-cols-2 justify-evenly">

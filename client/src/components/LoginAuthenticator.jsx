@@ -1,3 +1,5 @@
+//Rendering the required Navbar
+
 import { useAuth0 } from "@auth0/auth0-react"
 import NavBar from "./NavBar";
 import LoggedInNavBar from "./LoggedInNavBar";

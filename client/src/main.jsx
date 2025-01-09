@@ -14,6 +14,9 @@ import Search from './components/Search.jsx'
 import NavBar from './components/NavBar.jsx'
 import SearchText from './components/searchText.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { Toaster } from 'sonner'
+import { AuthProvider } from './contexts/AuthContext.jsx'
+import SearchCam from './components/SearchCam.jsx'
 
 
 const router = createBrowserRouter([
@@ -60,14 +63,21 @@ const router = createBrowserRouter([
   {
     path: "/SearchText",
     element: <><div className="max-w-7xl mx-auto pt-5 px-6"><SearchText/></div></>
+  },
+  {
+    path: "/SearchCam",
+    element: <><div className="max-w-7xl mx-auto pt-5 px-6"><SearchCam/></div></>
   }
 ])
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    <AuthProvider>
     <Auth0Authenticator>
     {/* <App /> */}
     <RouterProvider router = {router} basename="/"/>
     </Auth0Authenticator>
+    </AuthProvider>
+    <Toaster richColors closeButton position="top-center" />
   </StrictMode>,
 )

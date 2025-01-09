@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "proxy":"http://127.0.0.1:8000",
+  "proxy": "http://127.0.0.1:8000",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -14,6 +14,7 @@
     "@auth0/auth0-react": "^2.2.4",
     "axios": "^1.7.7",
     "express": "^4.21.1",
+    "firebase": "^11.1.0",
     "lucide-react": "^0.428.0",
     "path": "^0.12.7",
     "react": "^18.3.1",
@@ -21,6 +22,7 @@
     "react-dropzone": "^14.2.10",
     "react-router-dom": "^6.26.1",
     "react-scroll-to-top": "^3.0.0",
+    "sonner": "^1.7.1",
     "typed.js": "^2.1.0"
   },
   "devDependencies": {

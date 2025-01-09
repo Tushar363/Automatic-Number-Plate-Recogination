@@ -1,6 +1,65 @@
+//Login and Signup forms
+
+import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth } from "../contexts/AuthContext";
+import { doSignInWithEmailAndPassword, doCreateUserWithEmailAndPassword, doSendEmailVerification } from "../auth";
+import { Navigate } from "react-router-dom";
+import { useState } from "react";
+import { toast } from "sonner";
+
 const Form = () => {
+  // auth0
+  const {loginWithRedirect} = useAuth0();
+
+  // firebase
+  const { userLoggedIn } = useAuth()
+  const [email, setEmail] = useState('') // signup email
+  const [email1, setEmail1] = useState('') // login email
+  const [password, setPassword] = useState('') // signup password
+  const [password1, setPassword1] = useState('') // login password
+  const [isSigningIn, setIsSigningIn] = useState(false)
+  const [isRegister, setIsRegister] = useState(false)
+
+  // function for login page
+  async function handleSubmit(e){
+    e.preventDefault();
+    const pass = document.getElementById('lpass')// for validation
+    const mail = document.getElementById('lemail')// for validation
+
+    if(mail.value=='' || pass.value==''){
+      toast.warning("All fields are required!");
+      return;
+    }
+
+    if(!isSigningIn && pass.value == password1 && mail.value == email1) {
+      setIsSigningIn(true)
+      await doSignInWithEmailAndPassword(email1, password1)
+      doSendEmailVerification()
+    }else{
+      toast.warning("Incorrect Email or Password !");
+    }
+    setIsSigningIn(false)
+  }
+
+  // function for signup page
+  async function handlerSubmit(e){
+    e.preventDefault();
+    
+    // const semail = document.getElementById('semail');
+    // const spass = document.getElementById('spass');
+
+    if(!isRegister) {
+      setIsRegister(true)
+      await doCreateUserWithEmailAndPassword(email, password)
+      doSendEmailVerification()
+    }
+    setIsRegister(false)
+  }
+
   return (
     <>
+    {userLoggedIn && (<Navigate to={'/'} replace={true} />)}
+
     <div className="flex items-center justify-center min-h-screen">
 
       {/* Login Form Section */}
@@ -10,10 +69,10 @@ const Form = () => {
       <h2 className="font-bold text-2xl bg-gradient-to-r from-orange-700 to-red-700 text-transparent bg-clip-text text-center">Login</h2>
       <p className="text-sm mt-4 text-[#002D74] text-pretty text-center">Already a member ? Just log in to get started !</p>
 
-      <form action="" className="flex flex-col gap-4">
-        <input className="p-2 mt-8 rounded-xl border" type="email" name="email" placeholder="Email"/>
+      <form action="" className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <input className="p-2 mt-8 rounded-xl border" type="email" name="email" id="lemail" value={email1} onChange={(e) => { setEmail1(e.target.value)}} placeholder="Email"/>
         <div className="relative">
-          <input className="p-2 rounded-xl border w-full" type="password" name="password" placeholder="Password"/>
+          <input className="p-2 rounded-xl border w-full" type="password" name="password" id="lpass" value={password1} onChange={(e) => { setPassword1(e.target.value)}} placeholder="Password"/>
           <svg onClick={
             () => {
               const input = document.querySelector('input[name="password"]');
@@ -24,7 +83,9 @@ const Form = () => {
             <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
           </svg>
         </div>
-        <button className="bg-gradient-to-r from-orange-400 to-orange-700 text-white rounded-xl py-2 hover:scale-105 duration-300">Login</button>
+
+        {/* login button */}
+        <button type="submit" className="bg-gradient-to-r from-orange-400 to-orange-700 text-white rounded-xl py-2 hover:scale-105 duration-300"> Login </button>
       </form>
 
       <div className="mt-6 grid grid-cols-3 items-center text-gray-400">
@@ -33,7 +94,7 @@ const Form = () => {
         <hr className="border-gray-400"/>
       </div>
 
-      <button className="bg-white border py-2 w-full rounded-xl mt-5 flex justify-center items-center text-sm hover:scale-105 duration-300 text-[#002D74]">
+      <button onClick={async () => await loginWithRedirect()} className="bg-white border py-2 w-full rounded-xl mt-5 flex justify-center items-center text-sm hover:scale-105 duration-300 text-[#002D74]">
         <svg className="mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="25px">
           <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
           <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
@@ -71,12 +132,12 @@ const Form = () => {
       <h2 className="font-bold text-2xl bg-gradient-to-r from-orange-700 to-red-700 text-transparent bg-clip-text text-center">Register</h2>
       <p className="text-sm mt-4 text-[#002D74] text-pretty text-center">New here? Create your account to get started!</p>
     
-      <form action="" className="flex flex-col gap-4">
+      <form action="" className="flex flex-col gap-4"  onSubmit={handlerSubmit}>
       <input className="p-2 mt-8 rounded-xl border" type="text" name="fname" placeholder="First Name"/>
       <input className="p-2 rounded-xl border" type="text" name="lname" placeholder="Last Name"/>
-        <input className="p-2 rounded-xl border" type="email" name="email" placeholder="Email"/>
+      <input className="p-2 rounded-xl border" id="semail" type="email" value={email} onChange={(e) => { setEmail(e.target.value)}} name="email" placeholder="Email"/>
         <div className="relative">
-          <input className="p-2 rounded-xl border w-full" type="password" name="spassword" placeholder="Password"/>
+          <input className="p-2 rounded-xl border w-full" type="password" name="spassword" id="spass" value={password} onChange={(e) => { setPassword(e.target.value)}} placeholder="Password"/>
           <svg onClick={
             () => {
               const input = document.querySelector('input[name="spassword"]');
@@ -87,7 +148,8 @@ const Form = () => {
             <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
           </svg>
         </div>
-        <button className="bg-gradient-to-r from-orange-400 to-orange-700 text-white rounded-xl py-2 hover:scale-105 duration-300">Signup</button>
+        {/* signup button */}
+        <button type="submit" className="bg-gradient-to-r from-orange-400 to-orange-700 text-white rounded-xl py-2 hover:scale-105 duration-300">Signup </button>
       </form>
 
       <div className="mt-6 grid grid-cols-3 items-center text-gray-400">

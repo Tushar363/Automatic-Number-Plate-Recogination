@@ -27,13 +27,14 @@ class ClientApp:
     def __init__(self):
         self.filename = "inputImage.jpg"
 
-
+# training model 
 @app.route("/train")
 def trainRoute():
     obj = TrainPipeline()
     obj.run_pipeline()
     return "Training Successfull!!"
 
+# using image
 @app.route("/predict", methods=['POST', 'GET'])
 @cross_origin()
 def predictRoute():
@@ -154,7 +155,7 @@ def predictRoute():
    
 
 
-
+# Using text
 @app.route("/text", methods=['POST'])
 @cross_origin()
 def predictText():
@@ -197,6 +198,108 @@ def predictText():
         print(val)
         return Response("Value not found inside  json data")
 
+
+# live camera code 
+# @app.route("/live", methods=['GET'])
+# @cross_origin()
+# def predictLive():
+#     try:
+#         haar_cascade_path = "model/haarcascade_russian_plate_number.xml"
+#         crop_cascade = cv2.CascadeClassifier(haar_cascade_path)
+
+#         # Directory to save detected crops
+#         save_dir = "plates"
+#         os.makedirs(save_dir, exist_ok=True)
+#         cap = cv2.VideoCapture(0)  # Open webcam
+#         cap.set(3, 640) # width
+#         cap.set(4, 480) #height
+#         if not cap.isOpened():
+#             return jsonify({"error": "Unable to access the camera"}), 500
+
+#         crop_count = 0
+
+#         while True:
+#             ret, frame = cap.read()
+#             if not ret:
+#                 print("Failed to grab frame.")
+#                 break
+
+#             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+#             crops = crop_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+#             for (x, y, w, h) in crops:
+#                 cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+#                 # img_roi = frame[y:y + h, x:x + w]
+            
+#             cv2.imshow("Crop Detection", frame)
+
+#             # Press 'Q' to save detected crops and quit
+#             key = cv2.waitKey(1) & 0xFF
+#             if key == ord('q'):
+#                 # for i, (x, y, w, h) in enumerate(crops):
+#                 crop_img = frame[y:y + h, x:x + w]
+#                 # crop_img = img_roi
+#                 crop_path = os.path.join(save_dir, f"crop_{crop_count}_{'0'}.jpg")
+#                 cv2.imwrite(crop_path, crop_img)
+#                 print(f"Saved: {crop_path}")
+#                 break
+
+
+#         result_image_path = "plates/crop_0_0.jpg"
+#         cropped_image = Image.open(result_image_path)
+#         cropped_image = cropped_image.resize((720, 360))
+#         enhancer = ImageEnhance.Sharpness(cropped_image)
+#         cropped_image = enhancer.enhance(2.0)
+#         enhancer = ImageEnhance.Contrast(cropped_image)
+#         cropped_image = enhancer.enhance(1.5)
+#         print("extracting text")
+#         text = ocr_detection().extracting_text(cropped_image)
+#         print(text)
+#         opencodedbase64 = encodeImageIntoBase64(
+#             result_image_path)
+#         result = {"image": opencodedbase64.decode('utf-8')}
+#         os.remove("plates/crop_0_0.jpg")
+
+
+#         license_plate = text
+#         dbS = ANPD_DB("ANPD","anpr_data")
+#         vechile_data  = dbS.get_vehicle_by_registration_number(license_plate)
+#         if vechile_data:
+#             print(vechile_data)
+#             reg_data = json.loads(json_util.dumps(vechile_data))
+#             response = {
+#                     "processed_image": result,
+#                     "reg_data":reg_data
+#                 }
+#             return jsonify(response)
+
+#         else:
+#             print("fetching from api")
+
+#             res_data = Api_req().fetchApi(license_plate)
+#             with open('data.json', 'w') as json_file:
+#                 json.dump(res_data,json_file,indent=4)
+                
+#             dbS.insert_data("data.json")
+#             os.remove("data.json")
+#             vechile_data  = dbS.get_vehicle_by_registration_number(license_plate)
+#             reg_data = json.loads(json_util.dumps(vechile_data))
+#             response = {
+#                     "processed_image": result,
+#                     "reg_data":reg_data
+#                 }
+#             print(response)
+#             return jsonify(response)
+        
+#         cap.release()
+
+#         return jsonify({"message": "Detection ended and crops saved."})
+#     except Exception as e:
+#         print(e)
+
+
+
+
 @app.route("/live", methods=['GET'])
 @cross_origin()
 def predictLive():
@@ -207,92 +310,113 @@ def predictLive():
         # Directory to save detected crops
         save_dir = "plates"
         os.makedirs(save_dir, exist_ok=True)
-        cap = cv2.VideoCapture(1)  # Open webcam
-        cap.set(3, 640) # width
-        cap.set(4, 480) #height
+
+        cap = cv2.VideoCapture(0)  # Open webcam
+        cap.set(3, 640)  # width
+        cap.set(4, 480)  # height
+
         if not cap.isOpened():
             return jsonify({"error": "Unable to access the camera"}), 500
 
         crop_count = 0
+        stable_coords = None
+        stability_frames = 5  # Number of frames to check for stability
+        stable_counter = 0
 
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                print("Failed to grab frame.")
-                break
+        def detection_stream():
+            nonlocal crop_count, stable_coords, stable_counter
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    yield jsonify({"error": "Failed to grab frame."})
+                    break
 
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            crops = crop_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                crops = crop_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
 
-            for (x, y, w, h) in crops:
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
-                # img_roi = frame[y:y + h, x:x + w]
-            
-            cv2.imshow("Crop Detection", frame)
+                if len(crops) > 0:
+                    (x, y, w, h) = crops[0]  # Take the first detected crop
+                    if stable_coords and (abs(x - stable_coords[0]) < 10 and abs(y - stable_coords[1]) < 10):
+                        stable_counter += 1
+                    else:
+                        stable_coords = (x, y, w, h)
+                        stable_counter = 0
 
-            # Press 'Q' to save detected crops and quit
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):
-                # for i, (x, y, w, h) in enumerate(crops):
-                crop_img = frame[y:y + h, x:x + w]
-                # crop_img = img_roi
-                crop_path = os.path.join(save_dir, f"crop_{crop_count}_{'0'}.jpg")
-                cv2.imwrite(crop_path, crop_img)
-                print(f"Saved: {crop_path}")
-                break
+                    # Highlight detected region
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    cv2.putText(frame, "Stabilizing...", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
+                    # When stable for enough frames, save the crop
+                    if stable_counter >= stability_frames:
+                        crop_img = frame[y:y + h, x:x + w]
+                        crop_path = os.path.join(save_dir, f"crop_{crop_count}.jpg")
+                        cv2.imwrite(crop_path, crop_img)
+                        print(f"Saved: {crop_path}")
 
-        result_image_path = "plates/crop_0_0.jpg"
-        cropped_image = Image.open(result_image_path)
-        cropped_image = cropped_image.resize((720, 360))
-        enhancer = ImageEnhance.Sharpness(cropped_image)
-        cropped_image = enhancer.enhance(2.0)
-        enhancer = ImageEnhance.Contrast(cropped_image)
-        cropped_image = enhancer.enhance(1.5)
-        print("extracting text")
-        text = ocr_detection().extracting_text(cropped_image)
-        print(text)
-        opencodedbase64 = encodeImageIntoBase64(
-            result_image_path)
-        result = {"image": opencodedbase64.decode('utf-8')}
-        os.remove("plates/crop_0_0.jpg")
+                        # Process the cropped image
+                        cropped_image = Image.open(crop_path)
+                        cropped_image = cropped_image.resize((720, 360))
+                        enhancer = ImageEnhance.Sharpness(cropped_image)
+                        cropped_image = enhancer.enhance(2.0)
+                        enhancer = ImageEnhance.Contrast(cropped_image)
+                        cropped_image = enhancer.enhance(1.5)
 
+                        print("Extracting text")
+                        text = ocr_detection().extracting_text(cropped_image)
+                        print(text)
 
-        license_plate = text
-        dbS = ANPD_DB("ANPD","anpr_data")
-        vechile_data  = dbS.get_vehicle_by_registration_number(license_plate)
-        if vechile_data:
-            print(vechile_data)
-            reg_data = json.loads(json_util.dumps(vechile_data))
-            response = {
-                    "processed_image": result,
-                    "reg_data":reg_data
-                }
-            return jsonify(response)
+                        # Process the OCR results
+                        license_plate = text
+                        dbS = ANPD_DB("ANPD", "anpr_data")
+                        print("geting data")
+                        vechile_data = dbS.get_vehicle_by_registration_number(license_plate)
+                        print(vechile_data)
+                        if vechile_data:
+                            reg_data = json.loads(json_util.dumps(vechile_data))
+                            response = {
+                                "processed_image": encodeImageIntoBase64(crop_path).decode('utf-8'),
+                                "reg_data": reg_data
+                                # "license_plate": license_plate
+                            }
+                        else:
+                            print("Fetching from API")
+                            res_data = Api_req().fetchApi(license_plate)
+                            with open('data.json', 'w') as json_file:
+                                json.dump(res_data, json_file, indent=4)
 
-        else:
-            print("fetching from api")
+                            dbS.insert_data("data.json")
+                            os.remove("data.json")
 
-            res_data = Api_req().fetchApi(license_plate)
-            with open('data.json', 'w') as json_file:
-                json.dump(res_data,json_file,indent=4)
-                
-            dbS.insert_data("data.json")
-            os.remove("data.json")
-            vechile_data  = dbS.get_vehicle_by_registration_number(license_plate)
-            reg_data = json.loads(json_util.dumps(vechile_data))
-            response = {
-                    "processed_image": result,
-                    "reg_data":reg_data
-                }
-            print(response)
-            return jsonify(response)
-        
-        cap.release()
+                            vechile_data = dbS.get_vehicle_by_registration_number(license_plate)
+                            reg_data = json.loads(json_util.dumps(vechile_data))
+                            response = {
+                                "processed_image": encodeImageIntoBase64(crop_path).decode('utf-8'),
+                                "reg_data": reg_data
+                                # "license_plate": license_plate
+                            }
 
-        return jsonify({"message": "Detection ended and crops saved."})
+                        # Send data to frontend
+                        yield f"data: {json.dumps(response)}\n\n"
+                        stable_counter = 0
+                        stable_coords = None
+                        crop_count += 1
+
+                cv2.imshow("Crop Detection", frame)
+
+                # Press 'Q' to quit the camera feed
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord('q'):
+                    print("Exiting detection loop.")
+                    break
+
+            cap.release()
+            cv2.destroyAllWindows()
+
+        return Response(detection_stream(), mimetype='text/event-stream')
+
     except Exception as e:
         print(e)
+        return jsonify({"error": str(e)}), 500
 
         
 if __name__ == "__main__":

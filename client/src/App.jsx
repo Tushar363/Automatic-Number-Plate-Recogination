@@ -35,7 +35,7 @@
 //     {
 //       path: "/About",
 //       element: <><NavBar /><div className="max-w-7xl mx-auto pt-5 px-6"><About/></div></>
-//     },
+//     }, 
 //     {
 //       path: "/Contact",
 //       element: <><NavBar /><div className="max-w-7xl mx-auto pt-5 px-6"><Contact/></div></>
