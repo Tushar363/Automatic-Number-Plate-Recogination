@@ -169,3 +169,4 @@ train/*
 *.png
 data/*.jpg
 *.json
+.codegpt
